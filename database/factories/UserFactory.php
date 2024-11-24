@@ -23,13 +23,35 @@ class UserFactory extends Factory
      */
     public function definition(): array
     {
+        $name = fake()->name();
+        // Convertir el nombre a slug, reemplazar guiones por puntos y eliminar puntos duplicados
+        $baseEmail = Str::slug($name, '.');
+        $baseEmail = preg_replace('/\.+/', '.', $baseEmail);
+        $baseEmail = trim($baseEmail, '.');
+        
+        // Generate a unique email by adding a number suffix if needed
+        $email = $baseEmail . '@example.com';
+        $counter = 1;
+        while (static::emailExists($email)) {
+            $email = $baseEmail . $counter . '@example.com';
+            $counter++;
+        }
+
         return [
-            'name' => fake()->name(),
-            'email' => fake()->unique()->safeEmail(),
+            'name' => $name,
+            'email' => $email,
             'email_verified_at' => now(),
             'password' => static::$password ??= Hash::make('password'),
             'remember_token' => Str::random(10),
         ];
+    }
+
+    /**
+     * Check if an email already exists
+     */
+    protected static function emailExists(string $email): bool
+    {
+        return \App\Models\User::where('email', $email)->exists();
     }
 
     /**
