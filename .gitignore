@@ -4,7 +4,9 @@
 /public/hot
 /public/storage
 /storage/*.key
-/storage/*
+/storage
+/storage/media-library/
+/storage/media-library/temp/
 /vendor
 .env
 .env.backup
@@ -29,8 +31,5 @@ folio-volt*.*
 gcp.bash
 getCode.php
 /tests/Jose
-/resources/views/tests
-/storage/app/private/public
-/storage/media-library/temp
-/storage
+
 
