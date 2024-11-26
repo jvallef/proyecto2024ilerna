@@ -44,54 +44,47 @@
                         <div class="mt-4">
                             <x-input-label for="profile_image" :value="__('Profile Image')" />
                             
-                            <div class="info-box mb-4">
-                                <div class="text-sm text-gray-600">
-                                    {{ __('media.allowed_types') }}: {{ implode(', ', config('media.avatar.allowed_types')) }}<br>
-                                    {{ __('media.max_file_size') }}: {{ config('media.avatar.max_file_size')/1024 }}MB<br>
-                                    {{ __('media.max_dimensions') }}: {{ config('media.avatar.max_dimensions') }}x{{ config('media.avatar.max_dimensions') }}
-                                </div>
+                            <!-- Info text -->
+                            <div class="text-xs text-gray-600 mb-2">
+                                {{ __('media.allowed_types') }}: jpg, jpeg, png, webp.
+                                {{ __('media.max_file_size') }}: {{ config('media.avatar.max_file_size')/1024 }}MB.
+                                {{ __('media.max_dimensions') }}: {{ config('media.avatar.max_dimensions') }}x{{ config('media.avatar.max_dimensions') }}
                             </div>
 
-                            <div class="grid grid-cols-3 gap-4">
-                                <!-- Zona de dropzone -->
-                                <div class="col-span-1">
-                                    <form id="mediaUploadForm" action="{{ route('media.store') }}" class="dropzone mb-4" method="POST">
-                                        @csrf
-                                        <input type="hidden" name="model_type" value="App\Models\User">
-                                        <input type="hidden" name="model_id" value="{{ auth()->id() }}">
-                                        <input type="hidden" name="collection" value="avatar">
-                                    </form>
+                            <!-- Upload container -->
+                            <div class="grid grid-cols-12 gap-4 items-start">
+                                <!-- Dropzone area -->
+                                <div class="col-span-4">
+                                    <div id="mediaUploadForm" class="dropzone" style="width: 200px; height: 200px;">
+                                        <div class="dz-message" data-dz-message>
+                                            <span class="text-xs">{{ __('Arrastra una imagen o haz click') }}</span>
+                                        </div>
+                                    </div>
+                                    <button type="button" id="uploadBtn" style="margin-top: 1rem; width: 200px; padding: 0.5rem 1rem; background-color: #4f46e5; color: white; border-radius: 0.375rem; font-size: 0.875rem; line-height: 1.25rem;">
+                                        {{ __('Upload Image') }}
+                                    </button>
                                 </div>
 
-                                <!-- Panel de información -->
-                                <div class="col-span-2">
-                                    <!-- Info Panel -->
-                                    <div id="imageInfoPanel" class="hidden mb-4 p-3 bg-gray-50 rounded-lg">
-                                        <h3 class="font-semibold mb-2 text-sm">Información de la imagen</h3>
-                                        <div class="space-y-2">
-                                            <div class="flex items-center">
-                                                <span class="text-xs">Nombre:</span>
-                                                <span id="imageFileName" class="ml-2 text-xs"></span>
-                                                <span id="imageFileNameCheck" class="ml-1"></span>
+                                <!-- Info panel -->
+                                <div class="col-span-8">
+                                    <div id="imageInfoPanel" class="hidden">
+                                        <div class="space-y-1">
+                                            <div class="flex items-center justify-between">
+                                                <span id="imageFileName" class="text-xs truncate"></span>
+                                                <span id="imageFileNameCheck" class="ml-1 flex-shrink-0"></span>
                                             </div>
-                                            <div class="flex items-center">
-                                                <span class="text-xs">Dimensiones:</span>
-                                                <span id="imageDimensions" class="ml-2 text-xs"></span>
-                                                <span id="imageDimensionsCheck" class="ml-1"></span>
+                                            <div class="flex items-center justify-between">
+                                                <span id="imageDimensions" class="text-xs truncate"></span>
+                                                <span id="imageDimensionsCheck" class="ml-1 flex-shrink-0"></span>
                                             </div>
-                                            <div class="flex items-center">
-                                                <span class="text-xs">Tamaño:</span>
-                                                <span id="imageSize" class="ml-2 text-xs"></span>
-                                                <span id="imageSizeCheck" class="ml-1"></span>
+                                            <div class="flex items-center justify-between">
+                                                <span id="imageSize" class="text-xs truncate"></span>
+                                                <span id="imageSizeCheck" class="ml-1 flex-shrink-0"></span>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
                             </div>
-
-                            <button type="button" id="uploadBtn" class="inline-flex items-center px-4 py-2 bg-gray-800 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-gray-700 focus:bg-gray-700 active:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition ease-in-out duration-150">
-                                {{ __('media.upload_button') }}
-                            </button>
                         </div>
 
                         <div class="flex items-center justify-end mt-4">
@@ -111,30 +104,41 @@
         .dropzone {
             border: 2px dashed #ccc !important;
             border-radius: 4px;
-            padding: 20px;
+            padding: 10px;
             text-align: center;
             background: white;
-            margin-bottom: 1rem;
+            margin-bottom: 0.5rem;
+            min-height: auto !important;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .dropzone:hover {
+            border-color: #818cf8 !important;
         }
         .dropzone .dz-message {
-            margin: 2em 0;
+            margin: 0 !important;
+            font-size: 0.875rem;
+        }
+        .dropzone .dz-preview {
+            min-height: auto;
+            margin: 0;
         }
         .dropzone .dz-preview .dz-image {
             border-radius: 4px;
+            width: 60px;
+            height: 60px;
         }
-        .info-box {
-            background-color: #f8f9fa;
-            border: 1px solid #dee2e6;
-            border-radius: 4px;
-            padding: 1rem;
-            margin-bottom: 1rem;
+        .dropzone .dz-preview.dz-image-preview {
+            background: transparent;
         }
         .message {
-            padding: 1rem;
-            margin: 1rem 0;
+            padding: 0.5rem;
+            margin: 0.5rem 0;
             border-radius: 0.25rem;
             background-color: #fff;
             border: 1px solid;
+            font-size: 0.875rem;
         }
         .message.success {
             color: #0f5132;
@@ -148,9 +152,20 @@
         }
         .check-icon {
             color: #198754;
+            width: 1rem;
+            height: 1rem;
         }
         .x-icon {
             color: #dc3545;
+            width: 1rem;
+            height: 1rem;
+        }
+        #imageInfoPanel {
+            font-size: 0.75rem;
+            line-height: 1rem;
+            background-color: #f9fafb;
+            border-radius: 0.375rem;
+            padding: 0.5rem;
         }
     </style>
     @endpush
@@ -177,11 +192,6 @@
                 success: "{{ __('media.upload_success') }}",
                 error: "{{ __('media.upload_error') }}"
             }
-        });
-
-        document.querySelector("#uploadBtn").addEventListener("click", (e) => {
-            e.preventDefault();
-            uploader.processUpload();
         });
     </script>
     @endpush
