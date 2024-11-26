@@ -2,20 +2,17 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\SoftDeletes;
-
 use Spatie\Permission\Traits\HasRoles;
-use Illuminate\Database\Eloquent\Relations\MorphMany;
-use Illuminate\Database\Eloquent\Relations\HasMany;
+use App\Traits\HasMediaTrait;
+use Spatie\MediaLibrary\HasMedia;
 
-class User extends Authenticatable
+class User extends Authenticatable implements HasMedia
 {
-    /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, Notifiable, SoftDeletes, HasRoles;
+    use HasFactory, Notifiable, SoftDeletes, HasRoles, HasMediaTrait;
 
     /**
      * The attributes that are mass assignable.
@@ -41,33 +38,38 @@ class User extends Authenticatable
     ];
 
     /**
-     * Get the attributes that should be cast.
+     * The attributes that should be cast.
      *
-     * @return array<string, string>
+     * @var array<string, string>
      */
-    protected function casts(): array
+    protected $casts = [
+        'email_verified_at' => 'datetime',
+        'password' => 'hashed',
+        'profile' => 'json',
+    ];
+
+    /**
+     * Register avatar media collection for the model.
+     */
+    public function registerAvatarMediaCollection(): void
     {
-        return [
-            'email_verified_at' => 'datetime',
-            'password' => 'hashed',
-            'profile' => 'json',
-        ];
+        // Este método vacío activa la colección de avatar en HasMediaTrait
     }
 
     /**
-     * Get all media associated with the user.
+     * Get the user's avatar URL.
      */
-    public function medias(): MorphMany
+    public function getAvatarUrlAttribute()
     {
-        return $this->morphMany(Media::class, 'mediable');
+        return $this->getFirstMediaUrl('avatar');
     }
 
     /**
-     * Get the user's avatar.
+     * Get the user's avatar thumbnail URL.
      */
-    public function avatar()
+    public function getAvatarThumbnailUrlAttribute()
     {
-        return $this->medias()->where('type', 'picture')->orderBy('created_at', 'desc')->first();
+        return $this->getFirstMediaUrl('avatar', 'thumb');
     }
 
     /**
