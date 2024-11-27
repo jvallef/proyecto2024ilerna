@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 use App\Services\UserDeletionService;
+use App\Http\Requests\UserRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
@@ -50,26 +51,37 @@ class UserController extends BaseController
      */
     public function index(Request $request)
     {
-        $query = User::query();
-        $query = $this->applyUserFilters($query, $request->input('search'));
-        $users = $query->paginate(config('app.pagination.per_page', 10))->withQueryString();
+        try {
+            $query = User::query();
+            $query = $this->applyUserFilters($query, $request->input('search'));
+            $perPage = config('app.pagination.per_page', env('PAGINATION_PER_PAGE', 10));
 
-        $user = auth()->user();
-        
-        if ($user->hasRole('admin')) {
-            $users = $users;
-        } elseif ($user->hasRole('teacher')) {
-            // Solo estudiantes de los cursos que imparte
-            $users = User::role('student')
-                ->whereHas('enrolledCourses', function ($query) use ($user) {
-                    $query->whereHas('teachers', function ($q) use ($user) {
-                        $q->where('users.id', $user->id);
-                    });
-                })
-                ->paginate(10);
+            $user = auth()->user();
+            
+            if ($user->hasRole('admin')) {
+                $users = $query->paginate($perPage);
+            } elseif ($user->hasRole('teacher')) {
+                // Solo estudiantes de los cursos que imparte
+                $users = User::role('student')
+                    ->whereHas('enrolledCourses', function ($query) use ($user) {
+                        $query->whereHas('teachers', function ($q) use ($user) {
+                            $q->where('users.id', $user->id);
+                        });
+                    })
+                    ->paginate($perPage);
+            }
+
+            // Asegurarnos de mantener los parámetros de búsqueda en la paginación
+            if ($request->has('search')) {
+                $users->appends(['search' => $request->input('search')]);
+            }
+
+            return view('admin.users.index', compact('users'));
+
+        } catch (\Exception $e) {
+            Log::error('Error loading users index: ' . $e->getMessage());
+            return back()->with('error', 'Ha ocurrido un error al cargar el listado de usuarios.');
         }
-
-        return view('admin.users.index', compact('users'));
     }
 
     /**
@@ -86,37 +98,47 @@ class UserController extends BaseController
      * Almacena un nuevo usuario en la base de datos.
      * Solo accesible por admin.
      */
-    public function store(Request $request)
+    public function store(UserRequest $request)
     {
-        $validated = $request->validate([
-            'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
-            'phone' => ['nullable', 'string', 'max:20'],
-            'password' => ['required', 'string', 'min:8', 'confirmed'],
-            'roles' => ['required', 'array'],
-            'roles.*' => ['exists:roles,name'],
-            'profile' => ['nullable', 'array'],
-        ]);
+        try {
+            \DB::beginTransaction();
 
-        $user = User::create([
-            'name' => $validated['name'],
-            'email' => $validated['email'],
-            'phone' => $validated['phone'],
-            'password' => Hash::make($validated['password']),
-            'profile' => $validated['profile'] ?? null,
-        ]);
+            $validated = $request->validated();
 
-        $user->syncRoles($validated['roles']);
-
-        if ($request->hasFile('avatar')) {
-            $user->medias()->create([
-                'file' => $request->file('avatar')->store('avatars', 'public'),
-                'type' => 'picture'
+            $user = User::create([
+                'name' => $validated['name'],
+                'email' => $validated['email'],
+                'phone' => $validated['phone'] ?? null,
+                'password' => Hash::make($validated['password']),
+                'profile' => $validated['profile'] ?? null,
             ]);
-        }
 
-        return redirect()->route('admin.users.index')
-            ->with('success', 'Usuario creado correctamente.');
+            $user->syncRoles($validated['roles']);
+
+            if ($request->hasFile('avatar')) {
+                $user->addMediaFromRequest('avatar')
+                    ->toMediaCollection('avatar');
+            }
+
+            \DB::commit();
+
+            // Asegurarnos de que la sesión se guarda antes de redirigir
+            $request->session()->flash('status', 'Usuario creado correctamente.');
+            
+            // Forzar una redirección GET limpia
+            return redirect()->to(route('admin.users.index'))
+                ->withHeaders([
+                    'Cache-Control' => 'no-cache, no-store, must-revalidate',
+                    'Pragma' => 'no-cache',
+                    'Expires' => '0'
+                ]);
+
+        } catch (\Exception $e) {
+            \DB::rollBack();
+            Log::error('Error creating user: ' . $e->getMessage());
+            return back()->withInput()
+                ->withErrors(['error' => 'Ha ocurrido un error al crear el usuario. Por favor, inténtalo de nuevo.']);
+        }
     }
 
     /**
@@ -202,7 +224,7 @@ class UserController extends BaseController
         $query = $this->applyUserFilters($query, $search);
         
         $totalUsers = $query->count();
-        $perPage = config('app.pagination.per_page', 10);
+        $perPage = config('app.pagination.per_page', env('PAGINATION_PER_PAGE', 10));
         $maxPage = ceil($totalUsers / $perPage);
         
         if ($this->currentPage > $maxPage && $maxPage > 0) {

@@ -1,9 +1,9 @@
 <?php
 
+use App\Http\Controllers\UserController;
 use App\Http\Controllers\AreaController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\RoleSwitchController;
-use App\Http\Controllers\UserController;
 use App\Http\Controllers\AdminDashboardController;
 use App\Http\Controllers\UploadController;
 use App\Http\Controllers\ProfileController;
@@ -94,6 +94,11 @@ Route::middleware('auth')->group(function () {
             // Rutas para el test de avatar
             Route::get('avatar', [TestAvatarController::class, 'create'])->name('media.avatar');
             Route::post('avatar', [TestAvatarController::class, 'store'])->name('media.avatar.store');
+
+            // Rutas para la creación de usuario
+            Route::get('/user', [UserController::class, 'create'])->name('test.user.create');
+            Route::post('/user', [UserController::class, 'store'])->name('test.user.store');
+    
         });
     });
 
