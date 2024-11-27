@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\User;
 use Illuminate\Http\Request;
 
-class TestAvatarController extends Controller
+class TestAvatarControllerV1 extends Controller
 {
     public function create()
     {
@@ -17,7 +17,7 @@ class TestAvatarController extends Controller
             'maxDimensions' => env('AVATAR_MAX_DIMENSIONS', 2048)
         ];
 
-        return view('tests.media.avatar', compact('config'));
+        return view('tests.media.versions.avatar-v1', compact('config'));
     }
 
     public function store(Request $request)

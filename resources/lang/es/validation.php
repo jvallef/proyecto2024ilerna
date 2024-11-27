@@ -7,4 +7,5 @@ return [
     ],
     'mimes' => 'El archivo debe ser de tipo: :values.',
     'required' => 'El campo :attribute es obligatorio.',
+    'image' => 'El archivo debe ser una imagen válida.',
 ];
