@@ -55,7 +55,7 @@
                             <div class="grid grid-cols-3 gap-4">
                                 <!-- Zona de dropzone -->
                                 <div class="col-span-1">
-                                    <form id="mediaUploadForm" action="{{ route('media.store') }}" class="dropzone mb-4" method="POST">
+                                    <form id="mediaUploadForm" action="{{ route('media.store') }}" class="dropzone mb-4" method="POST" onsubmit="return false;">
                                         @csrf
                                         <input type="hidden" name="model_type" value="App\Models\User">
                                         <input type="hidden" name="model_id" value="{{ auth()->id() }}">

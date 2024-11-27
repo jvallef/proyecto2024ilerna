@@ -10,6 +10,7 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\FileController;
 use App\Http\Controllers\ImageController;
 use App\Http\Controllers\MediaController;
+use App\Http\Controllers\TestAvatarController; // Agregado
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -63,13 +64,13 @@ Route::middleware('auth')->group(function () {
     Route::delete('/media/{media}', [MediaController::class, 'destroy'])->name('media.destroy');
 
     // Rutas de prueba
-    Route::prefix('tests')->name('tests.')->group(function () {
+    Route::prefix('tests')->group(function () {
         Route::get('/media-upload', function () {
             return view('tests.components.media-upload');
         })->name('media-upload');
 
         // Rutas de prueba para componentes de media
-        Route::prefix('media')->name('media.')->group(function () {
+        Route::prefix('media')->group(function () {
             Route::get('/single-image', function () {
                 return view('tests.media.single-image');
             })->name('single-image');
@@ -89,6 +90,10 @@ Route::middleware('auth')->group(function () {
             Route::get('/form', function () {
                 return view('tests.media.single-image-form');
             })->middleware(['auth', 'verified'])->name('form');
+
+            // Rutas para el test de avatar
+            Route::get('avatar', [TestAvatarController::class, 'create'])->name('media.avatar');
+            Route::post('avatar', [TestAvatarController::class, 'store'])->name('media.avatar.store');
         });
     });
 
