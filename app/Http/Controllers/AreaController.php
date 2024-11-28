@@ -61,7 +61,6 @@ class AreaController extends Controller
 
         $area = Area::create([
             'name' => $validated['name'],
-            'slug' => Str::slug($validated['name']),
             'description' => $validated['description'],
             'parent_id' => $validated['parent_id'],
             'featured' => $validated['featured'] ?? false,
@@ -132,7 +131,6 @@ class AreaController extends Controller
 
         $area->update([
             'name' => $validated['name'],
-            'slug' => Str::slug($validated['name']),
             'description' => $validated['description'],
             'parent_id' => $validated['parent_id'],
             'featured' => $validated['featured'] ?? false,

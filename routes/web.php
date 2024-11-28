@@ -1,16 +1,15 @@
 <?php
 
+use App\Http\Controllers\TestAvatarController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\AreaController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\RoleSwitchController;
 use App\Http\Controllers\AdminDashboardController;
-use App\Http\Controllers\UploadController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\FileController;
 use App\Http\Controllers\ImageController;
 use App\Http\Controllers\MediaController;
-use App\Http\Controllers\TestAvatarController; // Agregado
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -54,10 +53,6 @@ Route::middleware('auth')->group(function () {
     Route::get('/test-upload', function () {
         return view('test-upload');
     })->middleware(['auth', 'verified'])->name('test.upload');
-
-    // Rutas para el controlador de subida
-    Route::get('/upload', [UploadController::class, 'index'])->name('upload.index');
-    Route::post('/upload', [UploadController::class, 'store'])->name('upload.store');
 
     // Rutas para archivos y medios
     Route::post('/media', [MediaController::class, 'store'])->name('media.store');

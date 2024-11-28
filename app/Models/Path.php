@@ -14,10 +14,11 @@ use Illuminate\Database\Eloquent\Relations\MorphMany;
 
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
+use App\Traits\GeneratesSlug;
 
 class Path extends Model implements HasMedia
 {
-    use HasFactory, SoftDeletes, InteractsWithMedia;
+    use HasFactory, SoftDeletes, InteractsWithMedia, GeneratesSlug;
 
     protected $fillable = [
         'name',

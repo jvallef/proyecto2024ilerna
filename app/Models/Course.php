@@ -12,10 +12,11 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
+use App\Traits\GeneratesSlug;
 
 class Course extends Model implements HasMedia
 {
-    use HasFactory, SoftDeletes, InteractsWithMedia;
+    use HasFactory, SoftDeletes, InteractsWithMedia, GeneratesSlug;
 
     protected $fillable = [
         'title',
@@ -24,7 +25,7 @@ class Course extends Model implements HasMedia
         'featured',
         'age_group',
         'status',
-        'user_id',
+        'author_id',
         'author_active',
         'author_deactivated_at',
         'author_permanently_deleted'
@@ -70,7 +71,7 @@ class Course extends Model implements HasMedia
      */
     public function author(): BelongsTo
     {
-        return $this->belongsTo(User::class, 'user_id');
+        return $this->belongsTo(User::class, 'author_id');
     }
 
     /**
