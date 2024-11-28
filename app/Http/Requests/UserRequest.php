@@ -25,6 +25,10 @@ class UserRequest extends FormRequest
                 'image',
                 'mimes:' . env('AVATAR_ALLOWED_TYPES', 'jpg,jpeg,png,webp'),
                 'max:' . env('AVATAR_MAX_FILE_SIZE', 2048),
+                'dimensions:max_width=' . env('AVATAR_MAX_DIMENSIONS', 2000) . ',max_height=' . env('AVATAR_MAX_DIMENSIONS', 2000),
+                'file',
+                'mimetypes:image/jpeg,image/png,image/webp',  // Doble verificación del tipo MIME
+                'filled',  // Asegura que no esté vacío cuando se proporciona
             ],
         ];
 
