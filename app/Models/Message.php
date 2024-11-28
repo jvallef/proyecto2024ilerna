@@ -5,14 +5,16 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Spatie\MediaLibrary\HasMedia;
+use Spatie\MediaLibrary\InteractsWithMedia;
 
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 
-class Message extends Model
+class Message extends Model implements HasMedia
 {
-    use HasFactory, SoftDeletes;
+    use HasFactory, SoftDeletes, InteractsWithMedia;
 
     protected $fillable = [
         'body',
@@ -32,9 +34,11 @@ class Message extends Model
     protected $dates = ['deleted_at'];
 
     /**
-     * Devuelve los archivos multimedia asociados a este curso.
+     * Devuelve las Medias asociadas a este Message.
+     * @deprecated Use Spatie Media Library methods instead
+     * PROBABLEMENTE HAY QUE ADAPTARLO O ELIMINARLO
      */
-    public function medias(): MorphMany
+    public function medias()
     {
         return $this->morphMany(Media::class, 'mediable');
     }
@@ -86,6 +90,4 @@ class Message extends Model
     {
         return $this->belongsTo(Content::class);
     }
-
-
 }

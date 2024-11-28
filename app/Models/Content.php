@@ -13,9 +13,12 @@ use Illuminate\Database\Eloquent\Collection;
 
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 
-class Content extends Model
+use Spatie\MediaLibrary\HasMedia;
+use Spatie\MediaLibrary\InteractsWithMedia;
+
+class Content extends Model implements HasMedia
 {
-    use HasFactory, SoftDeletes;
+    use HasFactory, SoftDeletes, InteractsWithMedia;
 
     protected $fillable = [
         'type',
@@ -32,9 +35,11 @@ class Content extends Model
     protected $dates = ['deleted_at'];
 
     /**
-     * Devuelve los archivos multimedia asociados a este curso.
+     * Devuelve las Medias asociadas a este Content.
+     * @deprecated Use Spatie Media Library methods instead
+     * PROBABLEMENTE HAY QUE ADAPTARLO O ELIMINARLO
      */
-    public function medias(): MorphMany
+    public function medias()
     {
         return $this->morphMany(Media::class, 'mediable');
     }

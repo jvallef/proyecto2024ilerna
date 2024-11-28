@@ -6,16 +6,18 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
-use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 
-class Path extends Model
+use Spatie\MediaLibrary\HasMedia;
+use Spatie\MediaLibrary\InteractsWithMedia;
+
+class Path extends Model implements HasMedia
 {
-    use HasFactory, SoftDeletes;
+    use HasFactory, SoftDeletes, InteractsWithMedia;
 
     protected $fillable = [
         'name',
@@ -35,9 +37,10 @@ class Path extends Model
     protected $dates = ['deleted_at'];
 
     /**
-     * Devuelve los archivos multimedia asociados a este curso.
+     * Devuelve las Medias asociadas a este Path.
+     * @deprecated Use Spatie Media Library methods instead
      */
-    public function medias(): MorphMany
+    public function medias()
     {
         return $this->morphMany(Media::class, 'mediable');
     }

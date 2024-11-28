@@ -9,12 +9,14 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\Builder;
-
 use Illuminate\Database\Eloquent\Collection;
 
-class Area extends Model
+use Spatie\MediaLibrary\HasMedia;
+use Spatie\MediaLibrary\InteractsWithMedia;
+
+class Area extends Model implements HasMedia
 {
-    use HasFactory, SoftDeletes;
+    use HasFactory, SoftDeletes, InteractsWithMedia;
 
     protected $fillable = [
         'name',
@@ -60,9 +62,11 @@ class Area extends Model
     }
 
     /**
-     * Get all media associated with the area.
+     * Devuelve las Medias asociadas a este Area.
+     * @deprecated Use Spatie Media Library methods instead
+     * PROBABLEMENTE HAY QUE ADAPTARLO O ELIMINARLO
      */
-    public function medias(): MorphMany
+    public function medias()
     {
         return $this->morphMany(Media::class, 'mediable');
     }
