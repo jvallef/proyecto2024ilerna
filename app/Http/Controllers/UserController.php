@@ -175,43 +175,42 @@ class UserController extends BaseController
      * Actualiza un usuario específico en la base de datos.
      * Solo accesible por admin.
      */
-    public function update(Request $request, User $user)
+    public function update(UserRequest $request, User $user)
     {
-        $validated = $request->validate([
-            'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'string', 'email', 'max:255', Rule::unique('users')->ignore($user->id)],
-            'phone' => ['nullable', 'string', 'max:20'],
-            'password' => ['nullable', 'string', 'min:8', 'confirmed'],
-            'roles' => ['required', 'array'],
-            'roles.*' => ['exists:roles,name'],
-            'profile' => ['nullable', 'array'],
-        ]);
+        try {
+            \DB::beginTransaction();
 
-        $user->update([
-            'name' => $validated['name'],
-            'email' => $validated['email'],
-            'phone' => $validated['phone'],
-            'profile' => $validated['profile'] ?? $user->profile,
-        ]);
+            $validated = $request->validated();
 
-        if (!empty($validated['password'])) {
-            $user->update(['password' => Hash::make($validated['password'])]);
-        }
-
-        $user->syncRoles($validated['roles']);
-
-        if ($request->hasFile('avatar')) {
-            // Eliminar avatar anterior si existe
-            $user->medias()->where('type', 'picture')->delete();
-            
-            $user->medias()->create([
-                'file' => $request->file('avatar')->store('avatars', 'public'),
-                'type' => 'picture'
+            $user->update([
+                'name' => $validated['name'],
+                'email' => $validated['email'],
+                'phone' => $validated['phone'] ?? null,
+                'profile' => $validated['profile'] ?? $user->profile,
             ]);
-        }
 
-        return redirect()->route('admin.users.index')
-            ->with('success', 'Usuario actualizado correctamente.');
+            if (!empty($validated['password'])) {
+                $user->update(['password' => Hash::make($validated['password'])]);
+            }
+
+            $user->syncRoles($validated['roles']);
+
+            if ($request->hasFile('avatar')) {
+                $user->addMediaFromRequest('avatar')
+                    ->toMediaCollection('avatar');
+            }
+
+            \DB::commit();
+
+            return redirect()->route('admin.users.index')
+                ->with('success', 'Usuario actualizado correctamente.');
+
+        } catch (\Exception $e) {
+            \DB::rollBack();
+            Log::error('Error updating user: ' . $e->getMessage());
+            return back()->withInput()
+                ->withErrors(['error' => 'Ha ocurrido un error al actualizar el usuario. Por favor, inténtalo de nuevo.']);
+        }
     }
 
     /**

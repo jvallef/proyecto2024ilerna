@@ -3,7 +3,8 @@
     'label' => 'Avatar',
     'required' => false,
     'value' => null,
-    'error' => null
+    'error' => null,
+    'model' => null
 ])
 
 @php
@@ -13,10 +14,27 @@
         'allowedTypes' => explode(',', $allowedTypes),
         'maxDimensions' => env('AVATAR_MAX_DIMENSIONS', 2048)
     ];
+    
+    $hasAvatar = $model && $model->getFirstMediaUrl('avatar');
+    $avatarUrl = $hasAvatar ? $model->getFirstMediaUrl('avatar') : null;
 @endphp
 
 <div {{ $attributes->merge(['class' => 'mt-4']) }}>
     <x-input-label :for="$name" :value="$label" />
+    
+    @if($hasAvatar)
+        <div class="mt-2 mb-4">
+            <div class="flex items-center">
+                <div class="flex-shrink-0">
+                    <img src="{{ $avatarUrl }}" alt="Avatar actual" class="h-16 w-16 rounded-full object-cover border border-gray-200">
+                </div>
+                <div class="ml-4">
+                    <p class="text-sm text-gray-500">Avatar actual</p>
+                </div>
+            </div>
+        </div>
+    @endif
+    
     <input type="file" 
            id="{{ $name }}" 
            name="{{ $name }}" 
@@ -30,6 +48,10 @@
            {{ $required ? 'required' : '' }} />
     
     <p class="mt-1 text-sm text-gray-500">
+        @if($hasAvatar)
+            Selecciona un nuevo archivo para cambiar el avatar actual
+            <br>
+        @endif
         Tamaño máximo permitido: {{ $config['maxSize'] }}KB
         <br>
         Tipos de archivo permitidos: {{ implode(', ', $config['allowedTypes']) }}
@@ -49,50 +71,45 @@
             constructor(inputId) {
                 this.input = document.getElementById(inputId);
                 this.error = document.getElementById(inputId + 'Error');
-                this.maxSize = {{ $config['maxSize'] * 1024 }};
-                this.allowedTypes = {!! json_encode($config['allowedTypes']) !!};
+                this.config = @json($config);
                 
-                this.setupEventListeners();
-            }
-            
-            setupEventListeners() {
-                this.input.addEventListener('change', this.validateFile.bind(this));
-                this.input.closest('form')?.addEventListener('submit', this.validateOnSubmit.bind(this));
+                if (this.input) {
+                    this.input.addEventListener('change', this.validateFile.bind(this));
+                }
             }
             
             validateFile(event) {
-                const file = this.input.files[0];
-                if (!file) return true;
-                
-                if (!this.validateFileSize(file)) return false;
-                if (!this.validateFileType(file)) return false;
-                
+                const file = event.target.files[0];
                 this.error.classList.add('hidden');
-                return true;
-            }
-            
-            validateFileSize(file) {
-                if (file.size > this.maxSize) {
-                    this.showError(`El archivo es demasiado grande. El tamaño máximo permitido es ${this.maxSize / 1024}KB`);
+                this.error.textContent = '';
+                
+                if (!file) return;
+                
+                // Validar tamaño
+                if (file.size > this.config.maxSize * 1024) {
+                    this.showError(`El archivo es demasiado grande. El tamaño máximo permitido es ${this.config.maxSize}KB`);
                     return false;
                 }
-                return true;
-            }
-            
-            validateFileType(file) {
+                
+                // Validar tipo
                 const fileType = file.type.split('/')[1];
-                if (!this.allowedTypes.includes(fileType)) {
-                    this.showError(`Tipo de archivo no permitido. Los tipos permitidos son: ${this.allowedTypes.join(', ')}`);
+                if (!this.config.allowedTypes.includes(fileType)) {
+                    this.showError(`Tipo de archivo no permitido. Use: ${this.config.allowedTypes.join(', ')}`);
                     return false;
                 }
-                return true;
-            }
-            
-            validateOnSubmit(event) {
-                if (!this.validateFile(event)) {
-                    event.preventDefault();
-                    return false;
-                }
+                
+                // Validar dimensiones
+                const img = new Image();
+                img.src = URL.createObjectURL(file);
+                
+                img.onload = () => {
+                    if (img.width > this.config.maxDimensions || img.height > this.config.maxDimensions) {
+                        this.showError(`La imagen es demasiado grande. Las dimensiones máximas permitidas son ${this.config.maxDimensions}x${this.config.maxDimensions}px`);
+                        this.input.value = '';
+                    }
+                    URL.revokeObjectURL(img.src);
+                };
+                
                 return true;
             }
             
@@ -102,9 +119,11 @@
                 this.input.value = '';
             }
         }
-
-        // Inicializar el uploader
-        new AvatarUploader('{{ $name }}');
+        
+        // Inicializar para cada input de avatar en la página
+        document.addEventListener('DOMContentLoaded', () => {
+            new AvatarUploader('{{ $name }}');
+        });
     </script>
     @endpush
 @endonce

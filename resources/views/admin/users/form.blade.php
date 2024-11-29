@@ -38,32 +38,48 @@
 
             @if(!isset($user))
             <div class="sm:col-span-2 grid grid-cols-1 gap-6 sm:grid-cols-2">
+            @else
+            <div class="sm:col-span-2 border-t border-gray-200 mt-6 pt-6">
+                <h4 class="text-sm font-medium text-gray-900 mb-4">Cambiar Contraseña (opcional)</h4>
+                <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
+            @endif
                 <!-- Contraseña -->
                 <div>
                     <div class="flex items-center">
                         <x-input-label for="password" :value="__('Contraseña')" />
-                        <x-required-mark />
+                        @if(!isset($user))
+                            <x-required-mark />
+                        @endif
                     </div>
                     <x-text-input id="password" class="block mt-1 w-full"
                         type="password"
                         name="password"
-                        required autocomplete="new-password" />
+                        :required="!isset($user)"
+                        autocomplete="new-password" />
                     <x-input-error :messages="$errors->get('password')" class="mt-2" />
+                    @if(isset($user))
+                        <p class="mt-1 text-sm text-gray-500">Dejar en blanco para mantener la contraseña actual</p>
+                    @endif
                 </div>
 
                 <!-- Confirmar Contraseña -->
                 <div>
                     <div class="flex items-center">
                         <x-input-label for="password_confirmation" :value="__('Confirmar Contraseña')" />
-                        <x-required-mark />
+                        @if(!isset($user))
+                            <x-required-mark />
+                        @endif
                     </div>
                     <x-text-input id="password_confirmation" class="block mt-1 w-full"
                         type="password"
                         name="password_confirmation"
-                        required autocomplete="new-password" />
+                        :required="!isset($user)"
+                        autocomplete="new-password" />
                     <x-input-error :messages="$errors->get('password_confirmation')" class="mt-2" />
                 </div>
             </div>
+            @if(isset($user))
+                </div>
             @endif
         </div>
     </div>

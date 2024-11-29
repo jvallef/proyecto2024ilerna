@@ -136,8 +136,8 @@
                         </table>
                     </div>
 
-                    <div class="mt-6">
-                        {{ $users->appends(request()->query())->links() }}
+                    <div class="mt-6 mb-4">
+                        {{ $users->links('vendor.pagination.tailwind') }}
                     </div>
                 </div>
             </div>
