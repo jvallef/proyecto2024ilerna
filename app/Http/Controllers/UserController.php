@@ -38,10 +38,27 @@ class UserController extends BaseController
     private function applyUserFilters($query, $search = null)
     {
         if ($search) {
-            $query->where(function($q) use ($search) {
-                $q->where('name', 'like', "%{$search}%")
-                  ->orWhere('email', 'like', "%{$search}%");
-            });
+            Log::info('Búsqueda recibida', ['search' => $search]);
+            
+            // Si contiene el separador ||, extraemos nombre y email
+            if (str_contains($search, '||')) {
+                list($name, $email) = explode('||', $search);
+                Log::info('Búsqueda separada', ['name' => $name, 'email' => $email]);
+                
+                $query->where(function($q) use ($name, $email) {
+                    $q->where('name', 'like', "%{$name}%")
+                      ->orWhere('email', 'like', "%{$email}%");
+                });
+            } else {
+                // Búsqueda normal en ambos campos
+                Log::info('Búsqueda normal', ['term' => $search]);
+                $query->where(function($q) use ($search) {
+                    $q->where('name', 'like', "%{$search}%")
+                      ->orWhere('email', 'like', "%{$search}%");
+                });
+            }
+            
+            Log::info('SQL generado', ['sql' => $query->toSql(), 'bindings' => $query->getBindings()]);
         }
         return $query;
     }

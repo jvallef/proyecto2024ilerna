@@ -32,6 +32,7 @@
                             <div class="flex-1 max-w-lg">
                                 <x-search-autocomplete 
                                     :route="route('admin.users.index')"
+                                    :search-url="url('/admin/api/search/users')"
                                     placeholder="Buscar por nombre o email..." />
                             </div>
                             <div class="ml-4">
