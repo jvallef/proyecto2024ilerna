@@ -10,6 +10,7 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\FileController;
 use App\Http\Controllers\ImageController;
 use App\Http\Controllers\MediaController;
+use App\Http\Controllers\Api\UserSearchController; // Agregado
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -37,6 +38,10 @@ Route::middleware('auth')->group(function () {
     Route::middleware(['role:admin'])->prefix('admin')->name('admin.')->group(function () {
         Route::get('/', [DashboardController::class, 'admin'])->name('dashboard');
         Route::resource('users', UserController::class);
+        
+        // API de búsqueda de usuarios
+        Route::get('/api/search/users', [UserSearchController::class, 'suggestions'])
+            ->name('api.users.search');
     });
 
     // Rutas de profesor
