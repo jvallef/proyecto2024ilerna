@@ -71,45 +71,50 @@
             constructor(inputId) {
                 this.input = document.getElementById(inputId);
                 this.error = document.getElementById(inputId + 'Error');
-                this.config = @json($config);
+                this.maxSize = {{ $config['maxSize'] * 1024 }};
+                this.allowedTypes = {!! json_encode($config['allowedTypes']) !!};
                 
-                if (this.input) {
-                    this.input.addEventListener('change', this.validateFile.bind(this));
+                this.setupEventListeners();
                 }
+            
+            setupEventListeners() {
+                this.input.addEventListener('change', this.validateFile.bind(this));
+                this.input.closest('form')?.addEventListener('submit', this.validateOnSubmit.bind(this));
             }
             
             validateFile(event) {
-                const file = event.target.files[0];
+                const file = this.input.files[0];
+                if (!file) return true;
+                
+                if (!this.validateFileSize(file)) return false;
+                if (!this.validateFileType(file)) return false;
+                
                 this.error.classList.add('hidden');
-                this.error.textContent = '';
-                
-                if (!file) return;
-                
-                // Validar tamaño
-                if (file.size > this.config.maxSize * 1024) {
-                    this.showError(`El archivo es demasiado grande. El tamaño máximo permitido es ${this.config.maxSize}KB`);
+                return true;
+            }
+            
+            validateFileSize(file) {
+                if (file.size > this.maxSize) {
+                    this.showError(`El archivo es demasiado grande. El tamaño máximo permitido es ${this.maxSize / 1024}KB`);
                     return false;
                 }
+                return true;
+            }
                 
-                // Validar tipo
+            validateFileType(file) {
                 const fileType = file.type.split('/')[1];
-                if (!this.config.allowedTypes.includes(fileType)) {
-                    this.showError(`Tipo de archivo no permitido. Use: ${this.config.allowedTypes.join(', ')}`);
+                if (!this.allowedTypes.includes(fileType)) {
+                    this.showError(`Tipo de archivo no permitido. Los tipos permitidos son: ${this.allowedTypes.join(', ')}`);
                     return false;
                 }
-                
-                // Validar dimensiones
-                const img = new Image();
-                img.src = URL.createObjectURL(file);
-                
-                img.onload = () => {
-                    if (img.width > this.config.maxDimensions || img.height > this.config.maxDimensions) {
-                        this.showError(`La imagen es demasiado grande. Las dimensiones máximas permitidas son ${this.config.maxDimensions}x${this.config.maxDimensions}px`);
-                        this.input.value = '';
+                return true;
+            }
+            
+            validateOnSubmit(event) {
+                if (!this.validateFile(event)) {
+                    event.preventDefault();
+                    return false;
                     }
-                    URL.revokeObjectURL(img.src);
-                };
-                
                 return true;
             }
             
@@ -120,10 +125,8 @@
             }
         }
         
-        // Inicializar para cada input de avatar en la página
-        document.addEventListener('DOMContentLoaded', () => {
+        // Inicializar el uploader
             new AvatarUploader('{{ $name }}');
-        });
     </script>
     @endpush
 @endonce
