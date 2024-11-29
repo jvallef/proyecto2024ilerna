@@ -21,12 +21,18 @@
     $avatarUrl = $user->getFirstMediaUrl('avatar');
     
     // Obtener iniciales: dos primeras letras de cada palabra o las dos primeras si es una palabra
-    $nameParts = explode(' ', $user->name);
+    $nameParts = explode(' ', trim($user->name));
     $initials = '';
+    
     if (count($nameParts) > 1) {
-        $initials = strtoupper(substr($nameParts[0], 0, 1) . substr($nameParts[1], 0, 1));
+        // Usar mb_substr para manejar correctamente caracteres UTF-8
+        $initials = mb_strtoupper(
+            mb_substr($nameParts[0], 0, 1, 'UTF-8') . 
+            mb_substr($nameParts[1], 0, 1, 'UTF-8'), 
+            'UTF-8'
+        );
     } else {
-        $initials = strtoupper(substr($user->name, 0, 2));
+        $initials = mb_strtoupper(mb_substr($user->name, 0, 2, 'UTF-8'), 'UTF-8');
     }
 @endphp
 
