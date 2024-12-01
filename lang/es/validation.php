@@ -134,6 +134,10 @@ return [
 
     'attributes' => [],
     'custom' => [
+        'area' => [
+            'self_parent' => 'Un área no puede ser su propio padre.',
+            'circular_reference' => 'No se pueden crear ciclos en la jerarquía de áreas.',
+        ],
         'attribute-name' => [
             'rule-name' => 'custom-message',
         ],

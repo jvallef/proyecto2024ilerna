@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\UserSearchController;
+use App\Http\Controllers\Api\AreaSearchController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -15,12 +16,4 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
-    return $request->user();
-});
-
-// Rutas de API para administración
-Route::middleware(['web', 'auth', 'role:admin'])->group(function () {
-    Route::get('/search/users', [UserSearchController::class, 'suggestions'])
-        ->name('api.users.search');
-});
+// Aquí irán las rutas de API para aplicaciones externas que usen Sanctum

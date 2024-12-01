@@ -25,6 +25,7 @@ class RolesAndPermissionsSeeder extends Seeder
         // Areas (admins pueden gestionar todas las áreas)
         Permission::create(['name' => 'manage areas']);
         Permission::create(['name' => 'view areas']);
+        Permission::create(['name' => 'restore areas']);    // Para restore/force-delete
 
         // Paths (admins pueden gestionar, teachers ver y editar sólo los suyos)
         Permission::create(['name' => 'manage paths']);
@@ -58,6 +59,7 @@ class RolesAndPermissionsSeeder extends Seeder
             'manage users',
             'manage areas',
             'view areas',
+            'restore areas',
             'manage paths',
             'view paths',
             'manage courses',

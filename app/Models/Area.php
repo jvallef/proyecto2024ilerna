@@ -12,12 +12,12 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 
 use Spatie\MediaLibrary\HasMedia;
-use Spatie\MediaLibrary\InteractsWithMedia;
+use App\Traits\HasMediaTrait;
 use App\Traits\GeneratesSlug;
 
 class Area extends Model implements HasMedia
 {
-    use HasFactory, SoftDeletes, InteractsWithMedia, GeneratesSlug;
+    use HasFactory, SoftDeletes, HasMediaTrait, GeneratesSlug;
 
     protected $fillable = [
         'name',
@@ -60,24 +60,6 @@ class Area extends Model implements HasMedia
     public function children(): HasMany
     {
         return $this->hasMany(Area::class, 'parent_id')->orderBy('sort_order');
-    }
-
-    /**
-     * Devuelve las Medias asociadas a este Area.
-     * @deprecated Use Spatie Media Library methods instead
-     * PROBABLEMENTE HAY QUE ADAPTARLO O ELIMINARLO
-     */
-    public function medias()
-    {
-        return $this->morphMany(Media::class, 'mediable');
-    }
-
-    /**
-     * Para obteenr el User de esta Area.
-     */
-    public function cover()
-    {
-        return $this->medias()->where('type', 'picture')->orderBy('created_at', 'desc')->first();
     }
 
     /**
@@ -139,5 +121,29 @@ class Area extends Model implements HasMedia
         } else {
             return Area::where('parent_id', $parentId)->get();
         }
+    }
+
+    /**
+     * Register cover media collection for the model.
+     */
+    public function registerCoverMediaCollection(): void
+    {
+        // Este método vacío activa la colección de cover en InteractsWithMedia
+    }
+
+    /**
+     * Get the area's cover URL.
+     */
+    public function getCoverUrlAttribute()
+    {
+        return $this->getFirstMediaUrl('cover');
+    }
+
+    /**
+     * Get the area's cover thumbnail URL.
+     */
+    public function getCoverThumbnailUrlAttribute()
+    {
+        return $this->getFirstMediaUrl('cover', 'thumb');
     }
 }

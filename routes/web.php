@@ -10,19 +10,33 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\FileController;
 use App\Http\Controllers\ImageController;
 use App\Http\Controllers\MediaController;
-use App\Http\Controllers\Api\UserSearchController; // Agregado
+use App\Http\Controllers\Api\UserSearchController;
+use App\Http\Controllers\Api\AreaSearchController; // Agregado
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
     return view('welcome');
 });
 
-// Rutas públicas
-Route::get('/areas', [AreaController::class, 'index'])->name('areas.index');
-Route::get('/areas/{slug}', [AreaController::class, 'show'])->name('areas.show');
+// Rutas públicas de áreas
+Route::get('/areas', [AreaController::class, 'publicIndex'])->name('areas.index');
+Route::get('/areas/{slug}', [AreaController::class, 'publicShow'])->name('areas.show');
+
+// Rutas de búsqueda de áreas
+Route::prefix('api')->group(function () {
+    // Ruta pública de búsqueda
+    Route::get('/search/areas/public', [\App\Http\Controllers\Api\AreaSearchController::class, 'suggestions'])
+        ->name('api.areas.search.public');
+        
+    // Ruta admin de búsqueda
+    Route::middleware(['auth', 'role:admin'])->group(function () {
+        Route::get('/search/areas', [\App\Http\Controllers\Api\AreaSearchController::class, 'suggestions'])
+            ->name('api.areas.search');
+    });
+});
 
 // Rutas que requieren autenticación
-Route::middleware('auth')->group(function () {
+Route::middleware(['auth'])->group(function () {
     // Rutas de perfil
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
@@ -38,20 +52,46 @@ Route::middleware('auth')->group(function () {
     Route::middleware(['role:admin'])->prefix('admin')->name('admin.')->group(function () {
         Route::get('/', [DashboardController::class, 'admin'])->name('dashboard');
         Route::resource('users', UserController::class);
+        Route::get('users/trashed', [UserController::class, 'trashed'])->name('users.trashed');
+        Route::put('users/{user}/restore', [UserController::class, 'restore'])->name('users.restore');
         
-        // API de búsqueda de usuarios
+        // Rutas admin de áreas
+        Route::get('areas', [AreaController::class, 'privateIndex'])->name('areas.index');
+        Route::get('areas/create', [AreaController::class, 'privateCreate'])->name('areas.create');
+        Route::post('areas', [AreaController::class, 'privateStore'])->name('areas.store');
+        Route::get('areas/{area}', [AreaController::class, 'privateShow'])->name('areas.show');
+        Route::get('areas/{area}/edit', [AreaController::class, 'privateEdit'])->name('areas.edit');
+        Route::put('areas/{area}', [AreaController::class, 'privateUpdate'])->name('areas.update');
+        Route::delete('areas/{area}', [AreaController::class, 'privateDestroy'])->name('areas.destroy');
+        Route::get('areas/trashed', [AreaController::class, 'privateTrashed'])->name('areas.trashed');
+        Route::put('areas/{area}/restore', [AreaController::class, 'privateRestore'])->name('areas.restore');
+        Route::delete('areas/{area}/force-delete', [AreaController::class, 'privateForceDelete'])->name('areas.force-delete');
+        
+        // API de búsqueda
         Route::get('/api/search/users', [UserSearchController::class, 'suggestions'])
             ->name('api.users.search');
+        Route::get('/api/search/areas', [AreaSearchController::class, 'suggestions'])
+            ->name('api.areas.search');
     });
 
     // Rutas de profesor
     Route::middleware(['role:teacher'])->prefix('workarea')->name('workarea.')->group(function () {
         Route::get('/', [DashboardController::class, 'teacher'])->name('dashboard');
+        
+        // Rutas educativas de áreas para profesores
+        Route::get('areas', [AreaController::class, 'educaIndex'])->name('areas.index');
+        Route::get('areas/{slug}', [AreaController::class, 'educaShow'])->name('areas.show');
+        Route::get('areas/{slug}/progress', [AreaController::class, 'educaProgress'])->name('areas.progress');
     });
 
     // Rutas de estudiante
     Route::middleware(['role:student'])->prefix('classroom')->name('classroom.')->group(function () {
         Route::get('/', [DashboardController::class, 'student'])->name('dashboard');
+        
+        // Rutas educativas de áreas para estudiantes
+        Route::get('areas', [AreaController::class, 'educaIndex'])->name('areas.index');
+        Route::get('areas/{slug}', [AreaController::class, 'educaShow'])->name('areas.show');
+        Route::get('areas/{slug}/progress', [AreaController::class, 'educaProgress'])->name('areas.progress');
     });
 
     // Ruta para la página de prueba de uploads
@@ -89,7 +129,7 @@ Route::middleware('auth')->group(function () {
             
             Route::get('/form', function () {
                 return view('tests.media.single-image-form');
-            })->middleware(['auth', 'verified'])->name('form');
+            })->middleware(['verified'])->name('form');
 
             // Rutas para el test de avatar
             Route::get('avatar', [TestAvatarController::class, 'create'])->name('media.avatar');
