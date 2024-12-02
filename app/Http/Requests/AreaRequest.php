@@ -67,19 +67,15 @@ class AreaRequest extends FormRequest
 
     protected function hasCircularReference($area, $newParentId, $visited = []): bool
     {
-        if (in_array($area->id, $visited)) {
+        // Si el área que queremos poner como padre es la misma área que estamos editando
+        if ($area->id === $newParentId) {
             return true;
         }
 
-        $visited[] = $area->id;
-        $parent = \App\Models\Area::find($newParentId);
-
-        if (!$parent) {
-            return false;
-        }
-
-        if ($parent->parent_id) {
-            return $this->hasCircularReference($area, $parent->parent_id, $visited);
+        // Si el nuevo padre es uno de los hijos o descendientes del área actual
+        $descendants = $area->children()->pluck('id')->toArray();
+        if (in_array($newParentId, $descendants)) {
+            return true;
         }
 
         return false;

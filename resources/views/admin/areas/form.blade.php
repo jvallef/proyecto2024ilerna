@@ -35,8 +35,7 @@
                 <x-input-label for="parent_id" :value="__('Área Padre')" />
                 <select id="parent_id" 
                         name="parent_id"
-                        class="mt-1 block w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm"
-                        {{ isset($area) && $area->id ? 'disabled' : '' }}>
+                        class="mt-1 block w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm">
                     <option value="">Selecciona un área padre</option>
                     @foreach($areasList as $areaId => $areaName)
                         <option value="{{ $areaId }}" 
