@@ -254,7 +254,7 @@ class AreaController extends BaseController
                 ->with('success', 'Area deleted successfully.');
         } catch (\Exception $e) {
             Log::error('Error deleting area: ' . $e->getMessage());
-            return back()->with('error', 'Error al eliminar el área.');
+            return back()->with('error', $e->getMessage());
         }
     }
 
