@@ -56,16 +56,16 @@ Route::middleware(['auth'])->group(function () {
         Route::put('users/{user}/restore', [UserController::class, 'restore'])->name('users.restore');
         
         // Rutas admin de áreas
+        Route::get('areas/trashed', [AreaController::class, 'privateTrashed'])->name('areas.trashed');
+        Route::patch('areas/{area}/restore', [AreaController::class, 'privateRestore'])->name('areas.restore');
+        Route::delete('areas/{area}/force-delete', [AreaController::class, 'privateForceDelete'])->name('areas.force-delete');
         Route::get('areas', [AreaController::class, 'privateIndex'])->name('areas.index');
         Route::get('areas/create', [AreaController::class, 'privateCreate'])->name('areas.create');
         Route::post('areas', [AreaController::class, 'privateStore'])->name('areas.store');
-        Route::get('areas/{area}', [AreaController::class, 'privateShow'])->name('areas.show');
         Route::get('areas/{area}/edit', [AreaController::class, 'privateEdit'])->name('areas.edit');
         Route::put('areas/{area}', [AreaController::class, 'privateUpdate'])->name('areas.update');
         Route::delete('areas/{area}', [AreaController::class, 'privateDestroy'])->name('areas.destroy');
-        Route::get('areas/trashed', [AreaController::class, 'privateTrashed'])->name('areas.trashed');
-        Route::put('areas/{area}/restore', [AreaController::class, 'privateRestore'])->name('areas.restore');
-        Route::delete('areas/{area}/force-delete', [AreaController::class, 'privateForceDelete'])->name('areas.force-delete');
+        Route::get('areas/{area}', [AreaController::class, 'privateShow'])->name('areas.show');
         
         // API de búsqueda
         Route::get('/api/search/users', [UserSearchController::class, 'suggestions'])

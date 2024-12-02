@@ -16,6 +16,7 @@ return new class extends Migration
             $table->json('content')->index('gin')->nullable()->default('{"content": "A placeholder"}');
             $table->foreignId('author_id')->constrained('users');
             $table->foreignId('parent_id')->nullable()->constrained('contents');
+            $table->enum('status', ['draft', 'published', 'suspended'])->default('draft');
 
             $table->timestamps();
             $table->softDeletes();

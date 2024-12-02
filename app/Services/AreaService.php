@@ -84,10 +84,16 @@ class AreaService
      *
      * @param Area $area
      * @return bool
+     * @throws \Exception Si el área tiene hijos
      */
     public function delete(Area $area): bool
     {
         try {
+            // Verificar si el área tiene hijos
+            if ($area->children()->count() > 0) {
+                throw new \Exception('No se puede eliminar un área que tiene sub-áreas.');
+            }
+
             DB::beginTransaction();
 
             // Reordenar las áreas hermanas

@@ -1,47 +1,83 @@
 <x-app-layout>
     <div class="py-12">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-            <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
-                <div class="p-6 text-gray-900 dark:text-gray-100">
+            <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
+                <div class="p-6 text-gray-900">
+                    <div class="sm:flex sm:items-center sm:justify-between mb-6">
+                        <div>
+                            <h2 class="text-xl font-semibold text-gray-900">{{ __('Áreas Eliminadas') }}</h2>
+                            <p class="mt-1 text-sm text-gray-600">{{ __('Gestiona las áreas eliminadas del sistema') }}</p>
+                        </div>
+                    </div>
+
+                    @if (session('status'))
+                        <div class="mb-6 bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative" role="alert">
+                            <span class="block sm:inline">{{ session('status') }}</span>
+                        </div>
+                    @endif
+
+                    <div class="mb-6">
+                        <div class="flex items-center justify-between">
+                            <div class="flex-1 max-w-lg">
+                                <x-search-autocomplete 
+                                    :route="route('admin.areas.trashed')"
+                                    :search-url="route('api.areas.search', ['trashed' => true])"
+                                    placeholder="Buscar por nombre..." />
+                            </div>
+                            <div class="ml-4">
+                                <a href="{{ route('admin.areas.index') }}" 
+                                   class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                                    <svg class="h-4 w-4 mr-1" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 9V5.25A2.25 2.25 0 0 1 10.5 3h6a2.25 2.25 0 0 1 2.25 2.25v13.5A2.25 2.25 0 0 1 16.5 21h-6a2.25 2.25 0 0 1-2.25-2.25V15m-3 0-3-3m0 0 3-3m-3 3h18" />
+                                    </svg>
+                                    {{ __('Volver') }}
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+
                     @if($areas->isEmpty())
                         <div class="text-center py-4">
                             <p class="text-gray-500">{{ __('No hay áreas eliminadas') }}</p>
                         </div>
                     @else
                         <div class="overflow-x-auto">
-                            <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-600">
-                                <thead class="bg-gray-50 dark:bg-gray-700">
+                            <table class="min-w-full divide-y divide-gray-200">
+                                <thead class="bg-gray-50">
                                     <tr>
-                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                             {{ __('Nombre') }}
                                         </th>
-                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                             {{ __('Eliminado') }}
                                         </th>
-                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                                        <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                                             {{ __('Acciones') }}
                                         </th>
                                     </tr>
                                 </thead>
-                                <tbody class="bg-white divide-y divide-gray-200 dark:bg-gray-800 dark:divide-gray-600">
+                                <tbody class="bg-white divide-y divide-gray-200">
                                     @foreach($areas as $area)
                                         <tr>
                                             <td class="px-6 py-4 whitespace-nowrap">
-                                                <div class="text-sm font-medium text-gray-900 dark:text-gray-100">
+                                                <div class="text-sm font-medium text-gray-900">
                                                     {{ $area->name }}
                                                 </div>
                                             </td>
                                             <td class="px-6 py-4 whitespace-nowrap">
-                                                <div class="text-sm text-gray-500 dark:text-gray-400">
+                                                <div class="text-sm text-gray-500">
                                                     {{ $area->deleted_at->format('d/m/Y H:i') }}
                                                 </div>
                                             </td>
-                                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                                <div class="flex space-x-3">
+                                            <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                                <div class="flex justify-end space-x-3">
                                                     <form action="{{ route('admin.areas.restore', $area) }}" method="POST" class="inline-block">
                                                         @csrf
-                                                        <button type="submit" class="text-indigo-600 hover:text-indigo-900 dark:text-indigo-400 dark:hover:text-indigo-300">
-                                                            {{ __('Restaurar') }}
+                                                        @method('PATCH')
+                                                        <button type="submit" class="text-indigo-600 hover:text-indigo-900" title="{{ __('Restaurar') }}">
+                                                            <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                                                <path stroke-linecap="round" stroke-linejoin="round" d="M9 15L3 9m0 0l6-6M3 9h12a6 6 0 010 12h-3" />
+                                                            </svg>
                                                         </button>
                                                     </form>
                                                     <form action="{{ route('admin.areas.force-delete', $area) }}" 
@@ -50,8 +86,10 @@
                                                           onsubmit="return confirm('{{ __('¿Estás seguro? Esta acción no se puede deshacer.') }}')">
                                                         @csrf
                                                         @method('DELETE')
-                                                        <button type="submit" class="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300">
-                                                            {{ __('Eliminar permanentemente') }}
+                                                        <button type="submit" class="text-red-600 hover:text-red-900" title="{{ __('Eliminar permanentemente') }}">
+                                                            <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                                                <path stroke-linecap="round" stroke-linejoin="round" d="M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5m6 4.125l2.25 2.25m0 0l2.25 2.25M12 13.875l2.25-2.25M12 13.875l-2.25 2.25M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z" />
+                                                            </svg>
                                                         </button>
                                                     </form>
                                                 </div>
@@ -62,7 +100,7 @@
                             </table>
                         </div>
 
-                        <div class="mt-4">
+                        <div class="mt-6">
                             {{ $areas->links() }}
                         </div>
                     @endif

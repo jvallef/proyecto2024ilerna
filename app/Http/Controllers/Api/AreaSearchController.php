@@ -26,10 +26,17 @@ class AreaSearchController extends SearchController
 
     protected function additionalConstraints($query)
     {
+        if (request()->has('trashed')) {
+            $query->onlyTrashed();
+        } else {
+            $query->whereNull('deleted_at');
+        }
+
         // Si el usuario no es admin, solo mostrar áreas publicadas
         if (!auth()->user()?->hasRole('admin')) {
             $query->where('status', 'published');
         }
+
         return $query;
     }
 }
