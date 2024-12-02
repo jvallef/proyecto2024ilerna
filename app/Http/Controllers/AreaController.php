@@ -49,7 +49,7 @@ class AreaController extends BaseController
             $regularQuery = clone $query;
 
             $featuredAreas = $featuredQuery->where('featured', true)->get();
-            $regularAreas = $regularQuery->where('featured', false)->paginate($perPage);
+            $regularAreas = $regularQuery->paginate($perPage);
 
             // Mantener los parámetros en la paginación
             if ($request->has('search')) {
@@ -81,7 +81,7 @@ class AreaController extends BaseController
             $regularQuery = clone $query;
 
             $featuredAreas = $featuredQuery->where('featured', true)->get();
-            $regularAreas = $regularQuery->where('featured', false)->paginate($perPage);
+            $regularAreas = $regularQuery->paginate($perPage);
 
             // Mantener los parámetros en la paginación
             if ($request->has('search')) {

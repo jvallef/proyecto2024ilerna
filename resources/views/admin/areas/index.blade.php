@@ -48,7 +48,7 @@
                             <h3 class="text-lg font-medium text-gray-900 mb-4">{{ __('Áreas Destacadas') }}</h3>
                             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                                 @foreach($featuredAreas as $area)
-                                    <div class="bg-white border rounded-lg shadow-sm p-4">
+                                    <div class="bg-white border-2 border-primary/50 rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200 p-4">
                                         <div class="flex items-center">
                                             @if($area->getFirstMediaUrl('cover'))
                                                 <img class="h-12 w-12 rounded-lg object-cover" 
@@ -56,19 +56,19 @@
                                                      alt="{{ $area->name }}">
                                             @endif
                                             <div class="ml-3">
-                                                <h4 class="text-sm font-medium text-gray-900">{{ $area->name }}</h4>
+                                                <h4 class="text-sm font-medium text-gray-900 flex items-center">
+                                                    {{ $area->name }}
+                                                    <svg class="h-4 w-4 ml-1 text-primary" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                                                        <path fill-rule="evenodd" d="M10.788 3.21c.448-1.077 1.976-1.077 2.424 0l2.082 5.007 5.404.433c1.164.093 1.636 1.545.749 2.305l-4.117 3.527 1.257 5.273c.271 1.136-.964 2.033-1.96 1.425L12 18.354 7.373 21.18c-.996.608-2.231-.29-1.96-1.425l1.257-5.273-4.117-3.527c-.887-.76-.415-2.212.749-2.305l5.404-.433 2.082-5.006z" clip-rule="evenodd" />
+                                                    </svg>
+                                                </h4>
                                                 @if($area->parent)
                                                     <p class="text-xs text-gray-500">{{ $area->parent->name }}</p>
                                                 @endif
                                             </div>
                                         </div>
-                                        <div class="mt-3 flex justify-end space-x-2">
-                                            <a href="{{ route('admin.areas.edit', $area) }}" 
-                                               class="text-secondary hover:text-secondary/90">
-                                                <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
-                                                </svg>
-                                            </a>
+                                        <div class="mt-3">
+                                            <x-area-actions :area="$area" :render-modal="false" />
                                         </div>
                                     </div>
                                 @endforeach
@@ -108,12 +108,17 @@
                                                          alt="{{ $area->name }}">
                                                 @endif
                                                 <div class="ml-3">
-                                                    <div class="text-sm font-medium text-gray-900">
+                                                    <div class="text-sm font-medium text-gray-900 flex items-center">
                                                         {{ $area->name }}
+                                                        @if($area->featured)
+                                                            <svg class="h-4 w-4 ml-1 text-primary" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                                                                <path fill-rule="evenodd" d="M10.788 3.21c.448-1.077 1.976-1.077 2.424 0l2.082 5.007 5.404.433c1.164.093 1.636 1.545.749 2.305l-4.117 3.527 1.257 5.273c.271 1.136-.964 2.033-1.96 1.425L12 18.354 7.373 21.18c-.996.608-2.231-.29-1.96-1.425l1.257-5.273-4.117-3.527c-.887-.76-.415-2.212.749-2.305l5.404-.433 2.082-5.006z" clip-rule="evenodd" />
+                                                            </svg>
+                                                        @endif
                                                     </div>
                                                     @if($area->description)
                                                         <div class="text-sm text-gray-500">
-                                                            {{ Str::limit($area->description, 50) }}
+                                                            {{ Str::limit($area->description, 100) }}
                                                         </div>
                                                     @endif
                                                 </div>
@@ -129,32 +134,7 @@
                                             {{ $area->sort_order }}
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                            <div class="flex justify-end space-x-2">
-                                                <a href="{{ route('admin.areas.edit', $area) }}" 
-                                                   class="text-secondary hover:text-secondary/90">
-                                                    <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                                                        <path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
-                                                    </svg>
-                                                </a>
-                                                <div x-data>
-                                                    <button type="button" 
-                                                            @click="$dispatch('open-modal', { id: 'delete-area-{{ $area->id }}' })"
-                                                            class="text-red-600 hover:text-red-900">
-                                                        <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                                                            <path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
-                                                        </svg>
-                                                    </button>
-
-                                                    <x-modal-confirm
-                                                        id="delete-area-{{ $area->id }}"
-                                                        title="{{ __('Confirmar eliminación') }}"
-                                                        message="{{ __('¿Estás seguro de que deseas eliminar esta área? Esta acción no se puede deshacer.') }}"
-                                                        :action="route('admin.areas.destroy', ['area' => $area, 'page' => request('page', 1), 'search' => request('search')])"
-                                                        confirm="{{ __('Eliminar') }}"
-                                                        cancel="{{ __('Cancelar') }}"
-                                                    />
-                                                </div>
-                                            </div>
+                                            <x-area-actions :area="$area" />
                                         </td>
                                     </tr>
                                 @endforeach
