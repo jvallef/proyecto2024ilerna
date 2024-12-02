@@ -1,8 +1,8 @@
 <x-app-layout>
     <div class="py-12">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-            <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
-                <div class="p-6 text-gray-900 dark:text-gray-100">
+            <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
+                <div class="p-6 text-gray-900">
                     <!-- Encabezado -->
                     <div class="flex justify-between items-center mb-6">
                         <h2 class="text-2xl font-semibold">{{ $area->name }}</h2>
@@ -35,7 +35,7 @@
                             <!-- Descripción -->
                             <div>
                                 <h3 class="text-lg font-medium mb-2">Descripción</h3>
-                                <p class="text-gray-600 dark:text-gray-400">
+                                <p class="text-gray-600">
                                     {{ $area->description ?: 'Sin descripción' }}
                                 </p>
                             </div>
@@ -68,9 +68,9 @@
                                 <h3 class="text-lg font-medium mb-2">Jerarquía</h3>
                                 @if($area->parent)
                                     <div class="mb-4">
-                                        <span class="text-gray-600 dark:text-gray-400">Área padre:</span>
+                                        <span class="text-gray-600">Área padre:</span>
                                         <a href="{{ route('admin.areas.show', $area->parent) }}" 
-                                           class="text-indigo-600 hover:text-indigo-900 dark:text-indigo-400 dark:hover:text-indigo-300 ml-2">
+                                           class="text-indigo-600 hover:text-indigo-900 ml-2">
                                             {{ $area->parent->name }}
                                         </a>
                                     </div>
@@ -78,12 +78,12 @@
 
                                 @if($area->children->count() > 0)
                                     <div>
-                                        <span class="text-gray-600 dark:text-gray-400">Subáreas:</span>
+                                        <span class="text-gray-600">Subáreas:</span>
                                         <ul class="list-disc list-inside mt-2 space-y-1">
                                             @foreach($area->children as $child)
                                                 <li>
                                                     <a href="{{ route('admin.areas.show', $child) }}"
-                                                       class="text-indigo-600 hover:text-indigo-900 dark:text-indigo-400 dark:hover:text-indigo-300">
+                                                       class="text-indigo-600 hover:text-indigo-900">
                                                         {{ $child->name }}
                                                     </a>
                                                 </li>
@@ -98,15 +98,15 @@
                                 <h3 class="text-lg font-medium mb-2">Metadatos SEO</h3>
                                 <div class="space-y-4">
                                     <div>
-                                        <span class="text-gray-600 dark:text-gray-400">Título:</span>
+                                        <span class="text-gray-600">Título:</span>
                                         <p>{{ $area->meta['seo_title'] ?? 'No definido' }}</p>
                                     </div>
                                     <div>
-                                        <span class="text-gray-600 dark:text-gray-400">Descripción:</span>
+                                        <span class="text-gray-600">Descripción:</span>
                                         <p>{{ $area->meta['seo_description'] ?? 'No definida' }}</p>
                                     </div>
                                     <div>
-                                        <span class="text-gray-600 dark:text-gray-400">Palabras clave:</span>
+                                        <span class="text-gray-600">Palabras clave:</span>
                                         <p>{{ $area->meta['seo_keywords'] ?? 'No definidas' }}</p>
                                     </div>
                                 </div>
@@ -116,19 +116,19 @@
                             <div class="pt-6 border-t">
                                 <div class="grid grid-cols-2 gap-4 text-sm">
                                     <div>
-                                        <span class="text-gray-600 dark:text-gray-400">Creado:</span>
+                                        <span class="text-gray-600">Creado:</span>
                                         <p>{{ $area->created_at->format('d/m/Y H:i') }}</p>
                                     </div>
                                     <div>
-                                        <span class="text-gray-600 dark:text-gray-400">Última actualización:</span>
+                                        <span class="text-gray-600">Última actualización:</span>
                                         <p>{{ $area->updated_at->format('d/m/Y H:i') }}</p>
                                     </div>
                                     <div>
-                                        <span class="text-gray-600 dark:text-gray-400">Creado por:</span>
+                                        <span class="text-gray-600">Creado por:</span>
                                         <p>{{ $area->user->name }}</p>
                                     </div>
                                     <div>
-                                        <span class="text-gray-600 dark:text-gray-400">Orden:</span>
+                                        <span class="text-gray-600">Orden:</span>
                                         <p>{{ $area->sort_order }}</p>
                                     </div>
                                 </div>

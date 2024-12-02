@@ -108,6 +108,10 @@ class UserController extends BaseController
     public function create()
     {
         $roles = Role::all();
+        \Log::info('UserController@create', [
+            'roles' => $roles->count(),
+            'view_data' => compact('roles')
+        ]);
         return view('admin.users.create', compact('roles'));
     }
 

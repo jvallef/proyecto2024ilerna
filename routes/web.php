@@ -52,13 +52,14 @@ Route::middleware(['auth'])->group(function () {
         
         // Rutas admin de áreas
         Route::get('areas/trashed', [AreaController::class, 'privateTrashed'])->name('areas.trashed');
+        Route::get('areas/create', [AreaController::class, 'privateCreate'])->name('areas.create');
+        Route::get('areas/{area}/edit', [AreaController::class, 'privateEdit'])->name('areas.edit');
         Route::patch('areas/{area}/restore', [AreaController::class, 'privateRestore'])->name('areas.restore');
         Route::delete('areas/{area}/force-delete', [AreaController::class, 'privateForceDelete'])->name('areas.force-delete');
+        
         Route::get('areas', [AreaController::class, 'privateIndex'])->name('areas.index');
-        Route::get('areas/create', [AreaController::class, 'privateCreate'])->name('areas.create');
         Route::post('areas', [AreaController::class, 'privateStore'])->name('areas.store');
-        Route::get('areas/{area}/edit', [AreaController::class, 'privateEdit'])->name('areas.edit');
-        Route::put('areas/{area}', [AreaController::class, 'privateUpdate'])->name('areas.update');
+        Route::match(['put', 'patch'], 'areas/{area}', [AreaController::class, 'privateUpdate'])->name('areas.update');
         Route::delete('areas/{area}', [AreaController::class, 'privateDestroy'])->name('areas.destroy');
         Route::get('areas/{area}', [AreaController::class, 'privateShow'])->name('areas.show');
         

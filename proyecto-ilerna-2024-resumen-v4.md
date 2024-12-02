@@ -291,7 +291,7 @@
    - Scopes: published, featured
 
 3. **Controller**:
-   - Métodos public/private/educa
+   - Métodos prefijados como public para guest, private para admin y educa para teachers y students
    - Manejo de imágenes con collection 'cover'
    - Paginación configurable
    - Búsqueda integrada
@@ -308,7 +308,82 @@
    PAGINATION_PER_PAGE=12
    ```
 
-[Continuar con la documentación de otros módulos...]
+### Áreas
+
+#### Puntos Clave para la Implementación
+
+1. **Búsqueda**
+   - Separar los controladores de búsqueda por funcionalidad (normal vs trashed)
+   - Mantener la misma estructura que UserSearchController como referencia inical, pero una vez que esté funcionando AreaSearchController y TrashedAreaSearchController son una buena referenci a seguir.
+   - Usar rutas con nombres consistentes: `api.areas.search` y `api.areas.trashed.search`
+   - No mezclar lógica de trashed en el controlador principal de búsqueda
+
+2. **Modales de Confirmación**
+   - Usar el componente `x-modal-confirm` en lugar de `x-modal` básico tomando como referencia los de Areas cuando existan y sino el de User que es el modelo inicial.
+   - Asegurarse de incluir los parámetros de paginación y búsqueda en la URL de acción
+   - Estructura del modal:
+     ```blade
+     <x-modal-confirm
+         id="modal-id-{{ $item->id }}"
+         title="Título"
+         message="Mensaje"
+         :action="route('route.name', ['item' => $item, 'page' => request('page', 1), 'search' => request('search')])"
+         confirm="Texto Confirmar"
+         cancel="Texto Cancelar"
+         method="DELETE"  // Solo si es necesario
+     />
+     ```
+   - El botón que abre el modal debe usar:
+     ```blade
+     @click="$dispatch('open-modal', { id: 'modal-id-{{ $item->id }}' })"
+     ```
+
+3. **Vistas**
+   - Mantener consistencia entre index y trashed
+   - Reutilizar componentes como `x-search-autocomplete`
+   - Pasar los parámetros correctos a los componentes:
+     ```blade
+     <x-search-autocomplete 
+         :route="route('admin.areas.trashed')"
+         :search-url="route('api.areas.trashed.search')"
+         placeholder="Buscar por nombre..." 
+     />
+     ```
+
+4. **Controladores de Búsqueda**
+   - Estructura básica:
+     ```php
+     class AreaSearchController extends SearchController
+     {
+         protected function getModelClass(): string
+         {
+             return Area::class;
+         }
+
+         protected function getSearchFields(): array
+         {
+             return ['name', 'description'];
+         }
+
+         protected function formatSuggestion($model): string
+         {
+             return $model->name;
+         }
+
+         protected function additionalConstraints($query)
+         {
+             // Añadir restricciones específicas aquí
+             return $query;
+         }
+     }
+     ```
+
+#### Lecciones Aprendidas
+- Mantener la lógica de trashed separada del controlador principal
+- Usar componentes existentes como referencia (UserSearchController)
+- Seguir patrones consistentes en rutas y nombres
+- Preferir componentes predefinidos (`x-modal-confirm`) sobre implementaciones personalizadas
+- Incluir siempre parámetros de paginación y búsqueda en las acciones de formularios
 
 ## 📦 Estructura de Archivos Clave
 ```
@@ -366,4 +441,6 @@ proyecto2024ilerna/
 │       └── layouts/
 │           ├── app.blade.php
 │           └── navigation.blade.php
+```
+
 ```

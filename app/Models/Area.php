@@ -9,7 +9,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
 
 use Spatie\MediaLibrary\HasMedia;
 use App\Traits\HasMediaTrait;
@@ -18,6 +19,27 @@ use App\Traits\GeneratesSlug;
 class Area extends Model implements HasMedia
 {
     use HasFactory, SoftDeletes, HasMediaTrait, GeneratesSlug;
+
+    /**
+     * Register the cover media collection for this model
+     */
+    public function registerCoverMediaCollection(): void
+    {
+        // Este método vacío es suficiente para activar la colección 'cover' en HasMediaTrait
+    }
+
+    /**
+     * The "booted" method of the model.
+     */
+    protected static function booted()
+    {
+        parent::booted();
+
+        // Cuando se elimine el área, eliminar sus medios asociados
+        static::deleting(function ($area) {
+            $area->clearMediaCollection('cover');
+        });
+    }
 
     protected $fillable = [
         'name',
@@ -60,6 +82,15 @@ class Area extends Model implements HasMedia
     public function children(): HasMany
     {
         return $this->hasMany(Area::class, 'parent_id')->orderBy('sort_order');
+    }
+
+    /**
+     * Get child areas ordered alphabetically
+     */
+    public function childrenAlphabetically(): HasMany
+    {
+        return $this->hasMany(Area::class, 'parent_id')
+            ->orderBy(DB::raw('LOWER(name)'));
     }
 
     /**
@@ -124,11 +155,60 @@ class Area extends Model implements HasMedia
     }
 
     /**
-     * Register cover media collection for the model.
+     * Obtiene una lista jerárquica de áreas para mostrar en un select
+     * @return \Illuminate\Support\Collection
      */
-    public function registerCoverMediaCollection(): void
+    public static function getHierarchicalList(): \Illuminate\Support\Collection
     {
-        // Este método vacío activa la colección de cover en InteractsWithMedia
+        // Obtener todas las áreas ordenadas por nombre
+        $query = static::whereNull('parent_id')
+            ->orderBy(DB::raw('LOWER(name)'));
+            
+        // Debug de la consulta SQL
+        \Log::info('SQL Query:', [
+            'sql' => $query->toSql(),
+            'bindings' => $query->getBindings()
+        ]);
+        
+        $areas = $query->with(['children' => function ($query) {
+                $query->orderBy(DB::raw('LOWER(name)'));
+            }])
+            ->get();
+
+        // Debug de todas las áreas
+        \Log::info('Todas las áreas:', Area::pluck('name')->toArray());
+        \Log::info('Areas de primer nivel:', $areas->pluck('name')->toArray());
+            
+        return $areas->map(function ($area) {
+                return [
+                    'id' => $area->id,
+                    'name' => $area->name,
+                    'depth' => 0,
+                    'full_name' => $area->name,
+                    'children' => $area->getChildrenHierarchy(1)
+                ];
+            });
+    }
+
+    /**
+     * Función auxiliar recursiva para construir la jerarquía
+     * @param int $depth
+     * @return \Illuminate\Support\Collection
+     */
+    protected function getChildrenHierarchy(int $depth): \Illuminate\Support\Collection
+    {
+        return $this->childrenAlphabetically()
+            ->get()
+            ->map(function ($child) use ($depth) {
+                $prefix = str_repeat('&nbsp;&nbsp;&nbsp;&nbsp;', $depth);
+                return [
+                    'id' => $child->id,
+                    'name' => $child->name,
+                    'depth' => $depth,
+                    'full_name' => $prefix . $child->name,
+                    'children' => $child->getChildrenHierarchy($depth + 1)
+                ];
+            });
     }
 
     /**

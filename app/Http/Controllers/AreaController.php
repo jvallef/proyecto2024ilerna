@@ -128,8 +128,9 @@ class AreaController extends BaseController
      */
     public function privateCreate()
     {
-        $areas = Area::all(); // Para seleccionar área padre
-        return view('admin.areas.create', compact('areas'));
+        $area = new Area();
+        $areasList = $this->flattenAreaList(Area::getHierarchicalList());
+        return view('admin.areas.create', compact('area', 'areasList'));
     }
 
     /**
@@ -153,7 +154,12 @@ class AreaController extends BaseController
             \DB::commit();
 
             return redirect()->route('admin.areas.index')
-                           ->with('success', 'Área creada correctamente.');
+                           ->with('success', 'Área creada correctamente.')
+                           ->withHeaders([
+                               'Cache-Control' => 'no-cache, no-store, must-revalidate',
+                               'Pragma' => 'no-cache',
+                               'Expires' => '0'
+                           ]);
                            
         } catch (\Exception $e) {
             \DB::rollBack();
@@ -204,7 +210,8 @@ class AreaController extends BaseController
      */
     public function privateEdit(Area $area)
     {
-        return view('admin.areas.edit', compact('area'));
+        $areasList = $this->flattenAreaList(Area::getHierarchicalList());
+        return view('admin.areas.edit', compact('area', 'areasList'));
     }
 
     /**
@@ -339,5 +346,19 @@ class AreaController extends BaseController
             Log::info('SQL generado', ['sql' => $query->toSql(), 'bindings' => $query->getBindings()]);
         }
         return $query;
+    }
+
+    /**
+     * Convierte la lista jerárquica en una lista plana para el select
+     */
+    protected function flattenAreaList($areas, &$result = []): array
+    {
+        foreach ($areas as $area) {
+            $result[$area['id']] = $area['full_name'];
+            if (!empty($area['children'])) {
+                $this->flattenAreaList($area['children'], $result);
+            }
+        }
+        return $result;
     }
 }

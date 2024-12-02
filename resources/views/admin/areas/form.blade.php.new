@@ -1,10 +1,10 @@
 <!-- Formulario -->
-<form method="POST" 
-    action="{{ isset($area) && $area->id ? route('admin.areas.update', $area) : route('admin.areas.store') }}" 
-    enctype="multipart/form-data" 
-    class="space-y-6">
+<form action="{{ isset($area) && $area->exists ? route('admin.areas.update', $area) : route('admin.areas.store') }}" 
+      method="POST" 
+      enctype="multipart/form-data"
+      class="space-y-6">
     @csrf
-    @if(isset($area) && $area->id)
+    @if(isset($area) && $area->exists)
         @method('PUT')
     @endif
 
@@ -33,17 +33,19 @@
             <!-- Área Padre -->
             <div>
                 <x-input-label for="parent_id" :value="__('Área Padre')" />
+                <x-search-autocomplete
+                    :route="route('admin.areas.index')"
+                    :search-url="route('admin.api.areas.search')"
+                    :placeholder="__('Buscar área padre...')"
+                    :min-chars="2"
+                    :initial-value="isset($area->parent) ? $area->parent->name . ' || ' . Str::limit($area->parent->description, 50) : ''"
+                    :initial-id="$area->parent_id ?? null"
+                    input-name="parent_id"
+                />
                 <select id="parent_id" 
                         name="parent_id"
                         class="mt-1 block w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm"
-                        {{ isset($area) && $area->id ? 'disabled' : '' }}>
-                    <option value="">Selecciona un área padre</option>
-                    @foreach($areasList as $areaId => $areaName)
-                        <option value="{{ $areaId }}" 
-                            {{ old('parent_id', isset($area) ? $area->parent_id : '') == $areaId ? 'selected' : '' }}>
-                            {!! $areaName !!}
-                        </option>
-                    @endforeach
+                        {{ $area->id ? 'disabled' : '' }}>
                 </select>
                 <x-input-error :messages="$errors->get('parent_id')" class="mt-2" />
             </div>
@@ -95,7 +97,7 @@
     <!-- Imagen -->
     <div>
         <x-media.single-image-upload
-            :model="isset($area) ? $area : null"
+            :model="$area"
             name="cover"
             :label="__('Imagen de Portada')"
             collection="cover"
@@ -156,7 +158,7 @@
             {{ __('Cancelar') }}
         </x-secondary-button>
         <x-primary-button>
-            {{ isset($area) ? __('Actualizar') : __('Crear') }}
+            {{ isset($area) && $area->exists ? __('Actualizar') : __('Crear') }}
         </x-primary-button>
     </div>
 </form>

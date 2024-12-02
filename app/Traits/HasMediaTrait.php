@@ -24,6 +24,13 @@ trait HasMediaTrait
                 ->useDisk('public');
         }
 
+        // Colección específica para covers
+        if (method_exists($this, 'registerCoverMediaCollection')) {
+            $this->addMediaCollection('cover')
+                ->singleFile()
+                ->useDisk('public');
+        }
+
         // Colección específica para archivos
         if (method_exists($this, 'registerFileMediaCollection')) {
             $this->addMediaCollection('files')
