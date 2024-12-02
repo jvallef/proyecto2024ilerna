@@ -21,7 +21,7 @@
                             <div class="flex-1 max-w-lg">
                                 <x-search-autocomplete 
                                     :route="route('admin.areas.index')"
-                                    :search-url="route('api.areas.search')"
+                                    :search-url="route('admin.api.areas.search')"
                                     placeholder="Buscar por nombre..." />
                             </div>
                             <div class="ml-4 flex space-x-2">

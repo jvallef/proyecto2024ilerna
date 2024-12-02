@@ -11,7 +11,8 @@ use App\Http\Controllers\FileController;
 use App\Http\Controllers\ImageController;
 use App\Http\Controllers\MediaController;
 use App\Http\Controllers\Api\UserSearchController;
-use App\Http\Controllers\Api\AreaSearchController; // Agregado
+use App\Http\Controllers\Api\AreaSearchController;
+use App\Http\Controllers\Api\AreaTrashedSearchController; // Agregado
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -27,12 +28,6 @@ Route::prefix('api')->group(function () {
     // Ruta pública de búsqueda
     Route::get('/search/areas/public', [\App\Http\Controllers\Api\AreaSearchController::class, 'suggestions'])
         ->name('api.areas.search.public');
-        
-    // Ruta admin de búsqueda
-    Route::middleware(['auth', 'role:admin'])->group(function () {
-        Route::get('/search/areas', [\App\Http\Controllers\Api\AreaSearchController::class, 'suggestions'])
-            ->name('api.areas.search');
-    });
 });
 
 // Rutas que requieren autenticación
@@ -72,6 +67,8 @@ Route::middleware(['auth'])->group(function () {
             ->name('api.users.search');
         Route::get('/api/search/areas', [AreaSearchController::class, 'suggestions'])
             ->name('api.areas.search');
+        Route::get('/api/search/areas/trashed', [AreaTrashedSearchController::class, 'suggestions'])
+            ->name('api.areas.trashed.search');
     });
 
     // Rutas de profesor

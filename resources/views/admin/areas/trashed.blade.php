@@ -21,7 +21,7 @@
                             <div class="flex-1 max-w-lg">
                                 <x-search-autocomplete 
                                     :route="route('admin.areas.trashed')"
-                                    :search-url="route('api.areas.search', ['trashed' => true])"
+                                    :search-url="route('admin.api.areas.trashed.search')"
                                     placeholder="Buscar por nombre..." />
                             </div>
                             <div class="ml-4">

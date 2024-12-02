@@ -254,11 +254,27 @@ class AreaController extends BaseController
     /**
      * Display a listing of trashed areas.
      */
-    public function privateTrashed()
+    public function privateTrashed(Request $request)
     {
-        $perPage = env('PAGINATION_PER_PAGE', 12);
-        $areas = Area::onlyTrashed()->paginate($perPage);
-        return view('admin.areas.trashed', compact('areas'));
+        try {
+            $perPage = env('PAGINATION_PER_PAGE', 12);
+            $query = Area::onlyTrashed()->with(['user', 'parent']);
+
+            // Aplicar búsqueda si existe
+            $query = $this->applyAreaFilters($query, $request->input('search'));
+
+            $areas = $query->paginate($perPage);
+
+            // Mantener los parámetros en la paginación
+            if ($request->has('search')) {
+                $areas->appends(['search' => $request->input('search')]);
+            }
+
+            return view('admin.areas.trashed', compact('areas'));
+        } catch (\Exception $e) {
+            Log::error('Error loading trashed areas: ' . $e->getMessage());
+            return back()->with('error', 'Ha ocurrido un error al cargar el listado de áreas eliminadas.');
+        }
     }
 
     /**

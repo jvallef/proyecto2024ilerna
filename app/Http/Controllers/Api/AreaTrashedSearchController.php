@@ -2,12 +2,9 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\Http\Controllers\Controller;
 use App\Models\Area;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Log;
 
-class AreaSearchController extends SearchController
+class AreaTrashedSearchController extends SearchController
 {
     protected function getModelClass(): string
     {
@@ -26,6 +23,9 @@ class AreaSearchController extends SearchController
 
     protected function additionalConstraints($query)
     {
+        // Solo mostrar áreas eliminadas
+        $query->onlyTrashed();
+
         // Si el usuario no es admin, solo mostrar áreas publicadas
         if (!auth()->user()?->hasRole('admin')) {
             $query->where('status', 'published');
