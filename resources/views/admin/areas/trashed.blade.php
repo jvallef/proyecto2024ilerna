@@ -80,18 +80,26 @@
                                                             </svg>
                                                         </button>
                                                     </form>
-                                                    <form action="{{ route('admin.areas.force-delete', $area) }}" 
-                                                          method="POST" 
-                                                          class="inline-block"
-                                                          onsubmit="return confirm('{{ __('¿Estás seguro? Esta acción no se puede deshacer.') }}')">
-                                                        @csrf
-                                                        @method('DELETE')
-                                                        <button type="submit" class="text-red-600 hover:text-red-900" title="{{ __('Eliminar permanentemente') }}">
+                                                    <div x-data>
+                                                        <button type="button" 
+                                                                @click="$dispatch('open-modal', { id: 'force-delete-area-{{ $area->id }}' })"
+                                                                class="text-red-600 hover:text-red-900" 
+                                                                title="{{ __('Eliminar permanentemente') }}">
                                                             <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
                                                                 <path stroke-linecap="round" stroke-linejoin="round" d="M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5m6 4.125l2.25 2.25m0 0l2.25 2.25M12 13.875l2.25-2.25M12 13.875l-2.25 2.25M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z" />
                                                             </svg>
                                                         </button>
-                                                    </form>
+
+                                                        <x-modal-confirm
+                                                            id="force-delete-area-{{ $area->id }}"
+                                                            title="{{ __('Eliminar permanentemente') }}"
+                                                            message="{{ __('¿Estás seguro de que quieres eliminar permanentemente esta área? Esta acción no se puede deshacer y todos los datos asociados se perderán.') }}"
+                                                            :action="route('admin.areas.force-delete', ['area' => $area, 'page' => request('page', 1), 'search' => request('search')])"
+                                                            confirm="{{ __('Eliminar Permanentemente') }}"
+                                                            cancel="{{ __('Cancelar') }}"
+                                                            method="DELETE"
+                                                        />
+                                                    </div>
                                                 </div>
                                             </td>
                                         </tr>
