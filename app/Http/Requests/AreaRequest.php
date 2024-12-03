@@ -45,9 +45,9 @@ class AreaRequest extends FormRequest
             'cover' => [
                 'nullable',
                 'file',
-                'mimes:jpg,jpeg,png,webp',
-                'max:' . env('COVER_MAX_FILE_SIZE', 2048),
-                'dimensions:max_width=' . env('COVER_MAX_DIMENSIONS', 2000) . ',max_height=' . env('COVER_MAX_DIMENSIONS', 2000)
+                'mimes:' . implode(',', config('media.cover.allowed_types')),
+                'max:' . config('media.cover.max_file_size'),
+                'dimensions:max_width=' . config('media.cover.max_dimensions') . ',max_height=' . config('media.cover.max_dimensions')
             ],
             'meta' => ['nullable', 'array'],
             'meta.title' => ['nullable', 'string', 'max:60'],

@@ -10,11 +10,10 @@
 ])
 
 @php
-    $allowedTypes = env('COVER_ALLOWED_TYPES', 'jpg,jpeg,png,webp');
     $config = [
-        'maxSize' => env('COVER_MAX_FILE_SIZE', 2048),
-        'allowedTypes' => explode(',', $allowedTypes),
-        'maxDimensions' => env('COVER_MAX_DIMENSIONS', 2000)
+        'maxSize' => config('media.cover.max_file_size'),
+        'allowedTypes' => config('media.cover.allowed_types'),
+        'maxDimensions' => config('media.cover.max_dimensions')
     ];
     
     $hasImage = $model && $model->getFirstMediaUrl($collection);

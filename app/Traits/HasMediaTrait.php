@@ -28,7 +28,14 @@ trait HasMediaTrait
         if (method_exists($this, 'registerCoverMediaCollection')) {
             $this->addMediaCollection('cover')
                 ->singleFile()
-                ->useDisk('public');
+                ->useDisk('public')
+                ->acceptsFile(function ($file) {
+                    return in_array(
+                        $file->mimeType, 
+                        array_map(fn($ext) => 'image/' . $ext, config('media.cover.allowed_types'))
+                    );
+                })
+                ->withResponsiveImages();
         }
 
         // Colección específica para archivos

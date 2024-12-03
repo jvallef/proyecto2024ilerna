@@ -11,6 +11,12 @@ return [
         'allowed_types' => array_map('trim', explode(',', env('AVATAR_ALLOWED_TYPES', 'jpg,jpeg,png,webp'))),
     ],
     
+    'cover' => [
+        'max_file_size' => env('COVER_MAX_FILE_SIZE', 2048),
+        'max_dimensions' => env('COVER_MAX_DIMENSIONS', 2000),
+        'allowed_types' => array_map('trim', explode(',', env('COVER_ALLOWED_TYPES', 'jpg,jpeg,png,webp'))),
+    ],
+    
     'conversions' => [
         'thumb' => [
             'width' => env('MEDIA_THUMB_SIZE', 150),

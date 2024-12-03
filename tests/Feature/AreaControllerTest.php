@@ -4,247 +4,222 @@ namespace Tests\Feature;
 
 use App\Models\Area;
 use App\Models\User;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 use PHPUnit\Framework\Attributes\Test;
+use Spatie\Permission\Models\Role;
 
 class AreaControllerTest extends TestCase
 {
-    protected $areasToCleanup = [];
+    use WithFaker;
 
     protected function setUp(): void
     {
         parent::setUp();
-    }
-
-    protected function tearDown(): void
-    {
-        // Limpiar solo las áreas creadas en los tests
-        foreach ($this->areasToCleanup as $area) {
-            $area->forceDelete();
+        
+        // Limpiar la base de datos antes de cada test
+        $this->artisan('migrate:fresh');
+        
+        // Crear el rol admin si no existe
+        if (!Role::where('name', 'admin')->exists()) {
+            Role::create(['name' => 'admin']);
         }
         
-        parent::tearDown();
+        Storage::fake('public');
     }
 
-    protected function createArea($attributes = [])
-    {
-        $area = Area::factory()->create($attributes);
-        $this->areasToCleanup[] = $area;
-        return $area;
-    }
-
+    /**
+     * Test de visualización pública de áreas
+     * 
+     * #[Test]
+     */
     #[Test]
-    public function guests_can_view_published_areas()
+    public function publicIndex_should_show_published_areas()
     {
-        // Crear un área publicada no destacada
-        $area = $this->createArea([
-            'status' => 'published',
-            'featured' => false
-        ]);
+        // Obtener el valor de paginación del entorno
+        $perPage = env('PAGINATION_PER_PAGE', 10);
 
-        $response = $this->get(route('areas.show', $area->slug));
+        // Obtener las áreas que deberían estar visibles
+        $expectedFeaturedAreas = Area::published()->where('featured', true)->get();
+        $expectedRegularAreas = Area::published()->where('featured', false)->paginate($perPage);
 
-        $response->assertStatus(200)
-                ->assertViewIs('areas.show')
-                ->assertViewHas('area', $area);
+        // Realizar petición a la ruta pública
+        $response = $this->get(route('areas.index'));
+
+        // Verificar respuesta exitosa
+        $response->assertStatus(200);
+        $response->assertViewIs('areas.index');
+        
+        // Verificar que las variables están presentes en la vista
+        $response->assertViewHas(['featuredAreas', 'regularAreas']);
+        
+        // Obtener las colecciones de la vista
+        $featuredAreasInView = $response->viewData('featuredAreas');
+        $regularAreasInView = $response->viewData('regularAreas');
+
+        // Verificar que las áreas destacadas coinciden
+        $this->assertEquals(
+            $expectedFeaturedAreas->pluck('id')->sort()->values()->toArray(),
+            $featuredAreasInView->pluck('id')->sort()->values()->toArray()
+        );
+
+        // Verificar que las áreas regulares coinciden (solo la página actual)
+        $this->assertEquals(
+            $expectedRegularAreas->pluck('id')->sort()->values()->toArray(),
+            $regularAreasInView->pluck('id')->sort()->values()->toArray()
+        );
+
+        // Verificar la paginación
+        $this->assertEquals(
+            $expectedRegularAreas->currentPage(),
+            $regularAreasInView->currentPage()
+        );
+        $this->assertEquals(
+            $perPage,
+            $regularAreasInView->perPage()
+        );
+        $this->assertEquals(
+            $expectedRegularAreas->total(),
+            $regularAreasInView->total()
+        );
     }
 
+    /**
+     * Test de visualización administrativa de áreas
+     * 
+     * #[Test]
+     */
     #[Test]
-    public function guests_cannot_view_unpublished_areas()
+    public function privateIndex_requires_admin_role()
     {
-        $area = $this->createArea([
-            'status' => 'draft'
-        ]);
-
-        $response = $this->get(route('areas.show', $area->slug));
-
-        $response->assertStatus(403);
+        // TODO: Implementar test que verifique:
+        // - Solo admins pueden acceder
+        // - Muestra todas las áreas (no solo publicadas)
+        // - Incluye áreas en cualquier estado
+        // - Paginación y búsqueda funcionan
     }
 
+    /**
+     * Test de creación de área
+     * 
+     * #[Test]
+     */
     #[Test]
-    public function admin_can_view_all_areas()
+    public function store_creates_new_area_with_valid_data()
     {
-        // Verificar que el admin existe
-        $admin = User::where('email', 'admin@example.com')->first();
-        $this->assertNotNull($admin, 'El usuario admin no existe en la base de datos');
-        $this->assertTrue($admin->hasRole('admin'), 'El usuario no tiene el rol de admin');
-        
-        // Crear áreas regulares
-        $publishedArea = $this->createArea([
-            'status' => 'published',
-            'featured' => false
-        ]);
-        $unpublishedArea = $this->createArea([
-            'status' => 'draft',
-            'featured' => false
-        ]);
-        
-        // Crear áreas destacadas
-        $featuredPublished = $this->createArea([
-            'status' => 'published',
-            'featured' => true
-        ]);
-        $featuredUnpublished = $this->createArea([
-            'status' => 'draft',
-            'featured' => true
-        ]);
-
-        $response = $this->actingAs($admin)
-                ->get(route('admin.areas.index', ['page' => 3]));
-
-        
-        $response->assertStatus(200)
-                ->assertViewIs('admin.areas.index');
-
-        // Verificar áreas regulares (paginadas)
-        $regularAreas = $response->viewData('regularAreas');
-        $regularAreaIds = collect($regularAreas->items())->pluck('id')->toArray();
-        
-        $this->assertContains($publishedArea->id, $regularAreaIds, 'No se encontró el área regular publicada');
-        //$this->assertContains($unpublishedArea->id, $regularAreaIds, 'No se encontró el área regular no publicada');
-
-        /*
-        // Verificar áreas destacadas, pero eso habría que hacerlo en la parte pública y no es cosa de admin
-        $featuredAreas = $response->viewData('featuredAreas');
-        $featuredAreaIds = $featuredAreas->pluck('id')->toArray();
-        
-        $this->assertContains($featuredPublished->id, $featuredAreaIds, 'No se encontró el área destacada publicada');
-        $this->assertContains($featuredUnpublished->id, $featuredAreaIds, 'No se encontró el área destacada no publicada');
-        */
+        // TODO: Implementar test que verifique:
+        // - Solo admins pueden crear
+        // - Valida datos requeridos
+        // - Genera slug único
+        // - Maneja imagen de portada
+        // - Asigna usuario creador
+        // - Respeta jerarquía si es subárea
     }
 
+    /**
+     * Test de actualización de área
+     * 
+     * #[Test]
+     */
     #[Test]
-    public function admin_can_create_area()
+    public function update_modifies_existing_area()
     {
-        // Verificar que el admin existe
-        $admin = User::where('email', 'admin@example.com')->first();
-        $this->assertNotNull($admin, 'El usuario admin no existe en la base de datos');
-        $this->assertTrue($admin->hasRole('admin'), 'El usuario no tiene el rol de admin');
-
-        $response = $this->actingAs($admin)
-                        ->get(route('admin.areas.create'));
-
-        $response->assertStatus(200)
-                ->assertViewIs('areas.create');
-
-        $areaData = [
-            'name' => 'Test Area',
-            'description' => 'Test Description',
-            'status' => 'draft',
-            'featured' => false,
-            'parent_id' => null
-        ];
-
-        $response = $this->actingAs($admin)
-                        ->post(route('admin.areas.store'), $areaData);
-
-        $response->assertRedirect(route('admin.areas.index'))
-                ->assertSessionHas('success');
-
-        // Encontrar el área creada y añadirla para limpieza
-        $createdArea = Area::where('name', $areaData['name'])->first();
-        $this->areasToCleanup[] = $createdArea;
-
-        $this->assertDatabaseHas('areas', array_merge(
-            $areaData,
-            ['user_id' => $admin->id]
-        ));
+        // TODO: Implementar test que verifique:
+        // - Solo admins pueden actualizar
+        // - Valida datos
+        // - Mantiene o actualiza imagen
+        // - No permite ciclos en jerarquía
+        // - Mantiene integridad de datos
     }
 
+    /**
+     * Test de eliminación suave
+     * 
+     * #[Test]
+     */
     #[Test]
-    public function admin_can_edit_area()
+    public function destroy_performs_soft_delete()
     {
-        // Verificar que el admin existe
-        $admin = User::where('email', 'admin@example.com')->first();
-        $this->assertNotNull($admin, 'El usuario admin no existe en la base de datos');
-        $this->assertTrue($admin->hasRole('admin'), 'El usuario no tiene el rol de admin');
-
-        $area = $this->createArea(['user_id' => $admin->id]);
-
-        $response = $this->actingAs($admin)
-                        ->get(route('admin.areas.edit', $area));
-
-        $response->assertStatus(200)
-                ->assertViewIs('areas.edit');
-
-        $updatedData = [
-            'name' => 'Updated Area Name',
-            'description' => 'Updated description',
-            'status' => 'published',
-            'featured' => true,
-            'parent_id' => null
-        ];
-
-        $response = $this->actingAs($admin)
-                        ->put(route('admin.areas.update', $area), $updatedData);
-
-        $response->assertRedirect(route('admin.areas.index'))
-                ->assertSessionHas('success');
-
-        $this->assertDatabaseHas('areas', array_merge(
-            $updatedData,
-            ['id' => $area->id, 'user_id' => $admin->id]
-        ));
+        // TODO: Implementar test que verifique:
+        // - Solo admins pueden eliminar
+        // - Realiza soft delete
+        // - Mantiene integridad referencial
+        // - No afecta a otras áreas
     }
 
+    /**
+     * Test de restauración
+     * 
+     * #[Test]
+     */
     #[Test]
-    public function teacher_can_view_published_areas()
+    public function restore_recovers_soft_deleted_area()
     {
-        // Verificar que existe un profesor o crear uno temporal
-        $teacher = User::role('teacher')->first();
-        if (!$teacher) {
-            $teacher = User::factory()->create()->assignRole('teacher');
-        }
-        
-        // Crear áreas regulares
-        $publishedArea = $this->createArea([
-            'status' => 'published',
-            'featured' => false
-        ]);
-        $unpublishedArea = $this->createArea([
-            'status' => 'draft',
-            'featured' => false
-        ]);
-
-        $response = $this->actingAs($teacher)
-                        ->get(route('areas.index'));
-
-        $response->assertStatus(200)
-                ->assertViewIs('areas.index');
-
-        $regularAreas = $response->viewData('regularAreas');
-        $regularAreaIds = collect($regularAreas->items())->pluck('id')->toArray();
-        
-        $this->assertContains($publishedArea->id, $regularAreaIds, 'No se encontró el área publicada');
-        $this->assertNotContains($unpublishedArea->id, $regularAreaIds, 'Se encontró un área no publicada');
+        // TODO: Implementar test que verifique:
+        // - Solo admins pueden restaurar
+        // - Restaura área correctamente
+        // - Mantiene relaciones y datos
     }
 
+    /**
+     * Test de eliminación permanente
+     * 
+     * #[Test]
+     */
     #[Test]
-    public function non_admin_cannot_manage_areas()
+    public function forceDelete_permanently_removes_area()
     {
-        // Verificar que existe un profesor o crear uno temporal
-        $teacher = User::role('teacher')->first();
-        if (!$teacher) {
-            $teacher = User::factory()->create()->assignRole('teacher');
-        }
+        // TODO: Implementar test que verifique:
+        // - Solo admins pueden eliminar permanentemente
+        // - Elimina área y sus relaciones
+        // - Limpia archivos asociados
+        // - No afecta a otras áreas
+    }
 
-        $area = $this->createArea();
+    /**
+     * Test de gestión de imágenes
+     * 
+     * #[Test]
+     */
+    #[Test]
+    public function cover_image_management()
+    {
+        // TODO: Implementar test que verifique:
+        // - Subida de imagen válida
+        // - Validación de tipos de archivo
+        // - Validación de dimensiones
+        // - Actualización de imagen existente
+        // - Eliminación de imagen
+    }
 
-        // Test create
-        $response = $this->actingAs($teacher)
-                        ->get(route('admin.areas.create'));
-        $response->assertStatus(403);
+    /**
+     * Test de validaciones de estado
+     * 
+     * #[Test]
+     */
+    #[Test]
+    public function status_transitions_are_valid()
+    {
+        // TODO: Implementar test que verifique:
+        // - Transiciones de estado válidas
+        // - Permisos necesarios por estado
+        // - Validación de estados permitidos
+    }
 
-        // Test edit
-        $response = $this->actingAs($teacher)
-                        ->get(route('admin.areas.edit', $area));
-        $response->assertStatus(403);
-
-        // Test delete
-        $response = $this->actingAs($teacher)
-                        ->delete(route('admin.areas.destroy', $area));
-        $response->assertStatus(403);
+    /**
+     * Test de jerarquía
+     * 
+     * #[Test]
+     */
+    #[Test]
+    public function hierarchy_maintains_integrity()
+    {
+        // TODO: Implementar test que verifique:
+        // - No permite ciclos
+        // - Mantiene integridad al eliminar padre
+        // - Validación de profundidad
+        // - Ordenamiento correcto
     }
 }

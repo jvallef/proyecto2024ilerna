@@ -130,6 +130,10 @@ class Area extends Model implements HasMedia
      */
     public function getFullPathAttribute(): string
     {
+        if (!$this->relationLoaded('parent')) {
+            $this->load('parent');
+        }
+
         $path = collect([$this->name]);
         $area = $this;
 
