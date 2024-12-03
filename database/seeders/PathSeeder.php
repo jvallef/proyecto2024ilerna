@@ -154,6 +154,7 @@ class PathSeeder extends Seeder
             ]
         ];
 
+        $sortOrder = 1; // Contador para el orden global
 
         foreach ($pathsPorPlaza as $plazaNombre => $paths) {
             $plaza = Area::where('name', $plazaNombre)->first();
@@ -162,31 +163,53 @@ class PathSeeder extends Seeder
 
                     $slug = $this->generateUniqueSlug($pathName);
 
+                    // Meta básico para SEO
+                    $meta = json_encode([
+                        'seo' => [
+                            'title' => $pathName,
+                            'description' => "Ruta de aprendizaje de {$pathName} en {$plazaNombre}",
+                            'keywords' => [strtolower($pathName), 'educación', 'aprendizaje', 'ruta']
+                        ]
+                    ]);
+
                     $mainPath = Path::create([
                         'name' => $pathName,
                         'slug' => $slug,
                         'area_id' => $plaza->id,
                         'user_id' => $admin->id,
-                        'parent_id' => null
+                        'parent_id' => null,
+                        'sort_order' => $sortOrder++,
+                        'meta' => $meta
                     ]);
 
                     // Crear sub-paths para cada path principal
                     $subPaths = [
-                        $pathName . ' - Nivel Básico',
-                        $pathName . ' - Nivel Intermedio',
-                        $pathName . ' - Nivel Avanzado'
+                        'Nivel Básico' => 'Fundamentos y conceptos básicos de ' . $pathName,
+                        'Nivel Intermedio' => 'Conocimientos intermedios de ' . $pathName,
+                        'Nivel Avanzado' => 'Dominio avanzado de ' . $pathName
                     ];
 
-                    foreach ($subPaths as $subPath) {
+                    foreach ($subPaths as $level => $description) {
+                        $subPathName = $pathName . ' - ' . $level;
+                        $slug = $this->generateUniqueSlug($subPathName);
 
-                        $slug = $this->generateUniqueSlug($subPath);
+                        // Meta para sub-paths
+                        $subMeta = json_encode([
+                            'seo' => [
+                                'title' => $subPathName,
+                                'description' => $description,
+                                'keywords' => [strtolower($pathName), strtolower($level), 'educación', 'aprendizaje']
+                            ]
+                        ]);
 
                         Path::create([
-                            'name' => $subPath,
+                            'name' => $subPathName,
                             'slug' => $slug,
                             'parent_id' => $mainPath->id,
                             'area_id' => $plaza->id,
                             'user_id' => User::role('admin')->inRandomOrder()->first()->id,
+                            'sort_order' => $sortOrder++,
+                            'meta' => $subMeta
                         ]);
                     }
                 }

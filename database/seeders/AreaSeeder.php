@@ -48,26 +48,56 @@ class AreaSeeder extends Seeder
             ]
         ];
 
-        foreach ($distritos as $distrito => $plazas) {
+        $sortOrder = 1; // Contador para el orden global
 
+        foreach ($distritos as $distrito => $plazas) {
             $slug = $this->generateUniqueSlug($distrito);
+
+            // Meta para distrito
+            $meta = json_encode([
+                'seo' => [
+                    'title' => $distrito,
+                    'description' => "Explora el {$distrito} en EduPlazza, donde encontrarás diversas plazas de conocimiento.",
+                    'keywords' => [strtolower($distrito), 'educación', 'aprendizaje', 'distrito']
+                ],
+                'info' => [
+                    'type' => 'distrito',
+                    'plazas_count' => count($plazas)
+                ]
+            ]);
 
             $mainArea = Area::create([
                 'name' => $distrito,
                 'slug' => $slug,
                 'user_id' => $admin->id,
-                'parent_id' => null
+                'parent_id' => null,
+                'sort_order' => $sortOrder++,
+                'meta' => $meta
             ]);
 
             foreach ($plazas as $plaza) {
+                $slug = $this->generateUniqueSlug($plaza);
 
-                $slug = $this->generateUniqueSlug($distrito);
+                // Meta para plaza
+                $meta = json_encode([
+                    'seo' => [
+                        'title' => $plaza,
+                        'description' => "Descubre {$plaza} en el {$distrito}, un espacio dedicado al aprendizaje especializado.",
+                        'keywords' => [strtolower($plaza), 'educación', 'aprendizaje', 'plaza']
+                    ],
+                    'info' => [
+                        'type' => 'plaza',
+                        'distrito' => $distrito
+                    ]
+                ]);
 
                 Area::create([
                     'name' => $plaza,
                     'slug' => $slug,
                     'parent_id' => $mainArea->id,
                     'user_id' => User::role('admin')->inRandomOrder()->first()->id,
+                    'sort_order' => $sortOrder++,
+                    'meta' => $meta
                 ]);
             }
         }
