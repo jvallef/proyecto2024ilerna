@@ -57,21 +57,21 @@ trait HasMediaTrait
             ->height($conversions['thumb']['height'])
             ->nonQueued()
             ->keepOriginalImageFormat()
-            ->performOnCollections('default', 'avatar');
+            ->performOnCollections('default', 'avatar', 'cover');
 
         $this->addMediaConversion('medium')
             ->width($conversions['medium']['width'])
             ->height($conversions['medium']['height'])
             ->nonQueued()
             ->keepOriginalImageFormat()
-            ->performOnCollections('default', 'avatar');
+            ->performOnCollections('default', 'avatar', 'cover');
 
         $this->addMediaConversion('large')
             ->width($conversions['large']['width'])
             ->height($conversions['large']['height'])
             ->nonQueued()
             ->keepOriginalImageFormat()
-            ->performOnCollections('default', 'avatar');
+            ->performOnCollections('default', 'avatar', 'cover');
     }
 
     /**

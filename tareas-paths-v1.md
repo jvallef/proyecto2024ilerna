@@ -127,7 +127,7 @@ RESTRICCIONES:
 - NO modificar la estructura de las relaciones existentes
 - MANTENER compatibilidad con Area model
 - USAR SOLO traits existentes en el proyecto
-- RESPETAR convenciones de Laravel
+- RESPETAR convenciones de nombres
 - SEGUIR patrones de Areas module
 
 REFERENCIA:
@@ -261,3 +261,554 @@ VERIFICACIÓN:
 - Mantener consistencia con el sistema de rutas de Areas
 - Asegurar que las rutas siguen las mejores prácticas de seguridad y acceso
 - Documentar cualquier decisión de diseño importante
+
+## Tarea 4: Controladores para Paths
+Fecha: 2024-01-09
+
+### Prompt Utilizado
+
+```code
+CONTEXTO INMEDIATO:
+- Archivos a modificar/crear: 
+  * app/Http/Controllers/PathController.php (crear)
+  * app/Http/Controllers/Api/PathSearchController.php (crear)
+  * app/Http/Controllers/Api/PathTrashedSearchController.php (crear)
+- Funcionalidad actual:
+  * Rutas definidas para paths
+  * PathService implementado
+  * Modelo Path configurado
+- Métodos necesarios:
+  * Públicos: index, show
+  * Privados: index, show, create, store, edit, update, destroy, trashed, restore, forceDelete
+  * Educativos: index, show, progress
+  * Búsqueda: suggestions
+- Dependencias:
+  * PathService
+  * PathRequest (pendiente)
+  * Middleware de autenticación y roles
+  * Spatie Media Library
+- Validaciones existentes:
+  * Autenticación de usuarios
+  * Roles (admin, teacher, student)
+  * Permisos por método
+
+RESTRICCIONES:
+- NO crear nuevos middleware
+- NO modificar lógica de negocio (usar PathService)
+- MANTENER estructura de AreaController
+- USAR SOLO middleware existentes
+- RESPETAR convenciones de nombres
+- SEGUIR patrones de Areas
+
+REFERENCIA:
+- Implementación base: 
+  * app/Http/Controllers/AreaController.php
+  * app/Http/Controllers/Api/AreaSearchController.php
+  * app/Http/Controllers/Api/AreaTrashedSearchController.php
+- Documentación: 
+  * analisis-paths-v1.md (Punto 4)
+- Tests relacionados:
+  * tests/Feature/AreaControllerTest.php (no hacer de momento)
+- Commits: feat/areas-module
+
+TAREA:
+- Acción: Implementar controladores para Paths
+- Resultado: Sistema completo de controladores siguiendo Areas
+- Dependencias: 
+  * PathService implementado
+  * Rutas definidas
+  * Middleware configurados
+
+VERIFICACIÓN:
+- Comprobar:
+  * Todos los métodos necesarios implementados
+  * Middleware aplicados correctamente
+  * Inyección de dependencias correcta
+- Validar:
+  * Manejo de errores
+  * Respuestas consistentes
+  * Uso correcto de PathService
+- Tests necesarios:
+  * Métodos públicos
+  * Métodos privados
+  * Búsqueda y filtrado
+- Integridad:
+  * No hay lógica de negocio en controladores
+  * Coherencia con AreaController
+  * Protección de métodos sensibles
+```
+
+### Dificultades y Soluciones
+
+[Se completará durante la ejecución de la tarea]
+
+### Notas Adicionales
+- Mantener consistencia con el sistema de controladores de Areas
+- Asegurar que los controladores son simples y delegan la lógica al servicio
+- Documentar cualquier decisión de diseño importante
+
+## Tarea 5: Gestión de Medios
+Fecha: 2024-01-09
+
+### Prompt Utilizado
+
+```code
+CONTEXTO INMEDIATO:
+- Archivos a revisar y/o modificar: 
+  * app/Models/Path.php
+  * app/Traits/HasMediaTrait.php (verificar)
+  * config/media.php (verificar)
+- Funcionalidad actual:
+  * Path usa InteractsWithMedia directamente
+  * HasMediaTrait implementado en Areas
+  * Configuraciones base en config/media.php
+- Colecciones necesarias:
+  * 'cover' para imágenes de portada
+  * 'files' para archivos adjuntos
+  * 'default' para medios generales
+- Conversiones requeridas:
+  * thumb (200x200)
+  * medium (800x600)
+  * large (1200x900)
+- Dependencias:
+  * Spatie Media Library
+  * HasMediaTrait
+  * Configuración de almacenamiento
+  * Validaciones de archivos
+
+RESTRICCIONES:
+- NO modificar HasMediaTrait existente
+- NO alterar configuraciones globales
+- MANTENER consistencia con Areas
+- USAR SOLO colecciones definidas
+- RESPETAR límites de tamaño
+- SEGUIR convenciones de nombres
+
+REFERENCIA:
+- Implementación base: 
+  * app/Models/Area.php
+  * app/Traits/HasMediaTrait.php
+  * config/media.php
+- Documentación: 
+  * analisis-paths-v1.md (Punto 5)
+  * spatie/laravel-medialibrary docs
+- Tests relacionados:
+  * tests/Feature/MediaTest.php (no hacer de momento)
+- Commits: feat/areas-module
+
+TAREA:
+- Acción: Configurar gestión de medios para Paths
+- Resultado: Sistema de medios completo y consistente
+- Dependencias: 
+  * HasMediaTrait implementado
+  * Spatie configurado
+  * Almacenamiento configurado
+
+VERIFICACIÓN:
+- Comprobar:
+  * Trait aplicado correctamente
+  * Colecciones registradas
+  * Conversiones configuradas
+- Validar:
+  * Subida de archivos
+  * Generación de conversiones
+  * Límites de tamaño
+- Tests necesarios:
+  * Subida de cover
+  * Conversiones automáticas
+  * Eliminación de medios
+- Integridad:
+  * No hay conflictos con Areas
+  * Permisos de archivos correctos
+  * Rutas de almacenamiento válidas
+```
+
+### Dificultades y Soluciones
+
+[Se completará durante la ejecución de la tarea]
+
+### Notas Adicionales
+- Mantener consistencia con el sistema de medios de Areas
+- Asegurar que las conversiones son eficientes
+- Documentar cualquier configuración específica de Paths
+
+## Tarea 6: Validaciones y Reglas de Negocio
+Fecha: 2024-01-09
+
+### Prompt Utilizado
+
+```code
+CONTEXTO INMEDIATO:
+- Archivos a crear/modificar: 
+  * app/Http/Requests/PathRequest.php (crear)
+  * app/Models/Path.php (verificar)
+  * app/Services/PathService.php (verificar)
+- Funcionalidad actual:
+  * Modelo Path con relaciones definidas
+  * PathService implementado
+  * Controladores usando Request genérico
+- Validaciones necesarias:
+  * Campos básicos (name, description)
+  * Relaciones (parent_id, area_id)
+  * Estado y featured
+  * Medios (cover)
+  * Metadatos SEO
+- Reglas de negocio:
+  * Referencias circulares
+  * Nombres únicos
+  * Pertenencia a área
+  * Orden dentro del área
+- Dependencias:
+  * FormRequest de Laravel
+  * Reglas de validación existentes
+  * Configuración de medios
+  * PathService
+
+RESTRICCIONES:
+- NO modificar AreaRequest existente
+- NO alterar reglas globales
+- MANTENER consistencia con Areas
+- USAR SOLO reglas estándar de Laravel
+- RESPETAR límites de tamaño
+- SEGUIR convenciones de nombres
+
+REFERENCIA:
+- Implementación base: 
+  * app/Http/Requests/AreaRequest.php
+  * app/Models/Area.php
+  * app/Services/AreaService.php
+- Documentación: 
+  * analisis-paths-v1.md (Punto 6)
+  * Laravel validation docs
+- Tests relacionados:
+  * tests/Feature/PathValidationTest.php (no hacer de momento)
+- Commits: feat/areas-module
+
+TAREA:
+- Acción: Implementar validaciones y reglas de negocio
+- Resultado: Sistema de validación completo y consistente
+- Dependencias: 
+  * Modelo Path implementado
+  * PathService configurado
+  * Controladores preparados
+
+VERIFICACIÓN:
+- Comprobar:
+  * Todas las reglas implementadas
+  * Mensajes personalizados
+  * Funciones de validación custom
+- Validar:
+  * Referencias circulares
+  * Nombres únicos
+  * Pertenencia a área
+- Tests necesarios:
+  * Validaciones básicas
+  * Reglas de negocio
+  * Casos límite
+- Integridad:
+  * No hay conflictos con Areas
+  * Consistencia en mensajes
+  * Reglas coherentes
+```
+
+### Dificultades y Soluciones
+
+[Se completará durante la ejecución de la tarea]
+
+### Notas Adicionales
+- Mantener consistencia con el sistema de validación de Areas
+- Asegurar que las reglas son claras y específicas
+- Documentar cualquier regla de negocio especial
+
+## Tarea 7: Servicios y Helpers
+Fecha: 2024-01-09
+
+### Prompt Utilizado
+
+```code
+CONTEXTO INMEDIATO:
+- Archivos a crear/modificar: 
+  * app/Services/PathService.php (crear)
+  * app/Helpers/PathHelper.php (si es necesario)
+  * app/Models/Path.php (verificar)
+- Funcionalidad actual:
+  * Modelo Path con relaciones definidas
+  * PathRequest implementado
+  * Controladores usando Request genérico
+- Servicios necesarios:
+  * CRUD completo (create, update, delete)
+  * Gestión de transacciones DB
+  * Manejo de medios (cover)
+  * Gestión de ordenamiento
+  * Reordenamiento automático
+- Helpers requeridos:
+  * Ordenamiento jerárquico
+  * Manejo de errores
+  * Logging de operaciones
+  * Funciones de utilidad
+- Dependencias:
+  * Modelo Path
+  * PathRequest
+  * DB Transactions
+  * Media Library
+
+RESTRICCIONES:
+- NO modificar AreaService existente
+- NO alterar lógica global
+- MANTENER consistencia con Areas
+- USAR SOLO métodos estándar de Laravel
+- RESPETAR transacciones DB
+- SEGUIR convenciones de nombres
+
+REFERENCIA:
+- Implementación base: 
+  * app/Services/AreaService.php
+  * app/Models/Area.php
+  * app/Helpers/AreaHelper.php (si existe)
+- Documentación: 
+  * analisis-paths-v1.md (Punto 7)
+  * Laravel service docs
+- Tests relacionados:
+  * tests/Unit/PathServiceTest.php (no hacer de momento)
+- Commits: feat/areas-module
+
+TAREA:
+- Acción: Implementar servicios y helpers para Paths
+- Resultado: Sistema de servicios completo y consistente
+- Dependencias: 
+  * Modelo Path implementado
+  * PathRequest configurado
+  * Controladores preparados
+
+VERIFICACIÓN:
+- Comprobar:
+  * Todos los métodos necesarios
+  * Manejo de transacciones
+  * Gestión de errores
+- Validar:
+  * Ordenamiento correcto
+  * Manejo de medios
+  * Logging adecuado
+- Tests necesarios:
+  * Operaciones CRUD
+  * Ordenamiento
+  * Casos de error
+- Integridad:
+  * No hay conflictos con Areas
+  * Transacciones completas
+  * Rollback funcionando
+```
+
+### Dificultades y Soluciones
+
+[Se completará durante la ejecución de la tarea]
+
+### Notas Adicionales
+- Mantener consistencia con el sistema de servicios de Areas
+- Asegurar que las transacciones son atómicas
+- Documentar cualquier lógica de negocio especial
+
+## Tarea 8: Implementación de la lógica de negocio
+Fecha: 2024-01-09
+
+### Prompt Utilizado
+
+```code
+CONTEXTO INMEDIATO:
+- Archivos a crear/modificar: 
+  * app/Services/PathService.php (modificar)
+  * app/Models/Path.php (verificar)
+  * app/Http/Controllers/PathController.php (verificar)
+- Funcionalidad actual:
+  * Modelo Path con relaciones definidas
+  * PathRequest implementado
+  * Controladores usando Request genérico
+- Lógica de negocio necesaria:
+  * Gestión de rutas de aprendizaje
+  * Integración con Areas y Media
+  * Manejo de transacciones DB
+  * Gestión de ordenamiento
+  * Reordenamiento automático
+- Dependencias:
+  * Modelo Path
+  * PathRequest
+  * DB Transactions
+  * Media Library
+
+RESTRICCIONES:
+- NO modificar AreaService existente
+- NO alterar lógica global
+- MANTENER consistencia con Areas
+- USAR SOLO métodos estándar de Laravel
+- RESPETAR transacciones DB
+- SEGUIR convenciones de nombres
+
+REFERENCIA:
+- Implementación base: 
+  * app/Services/AreaService.php
+  * app/Models/Area.php
+  * app/Http/Controllers/AreaController.php
+- Documentación: 
+  * analisis-paths-v1.md (Punto 8)
+  * Laravel service docs
+- Tests relacionados:
+  * tests/Unit/PathServiceTest.php (no hacer de momento)
+- Commits: feat/areas-module
+
+TAREA:
+- Acción: Implementar lógica de negocio para Paths
+- Resultado: Sistema de lógica de negocio completo y consistente
+- Dependencias: 
+  * Modelo Path implementado
+  * PathRequest configurado
+  * Controladores preparados
+
+VERIFICACIÓN:
+- Comprobar:
+  * Todos los métodos necesarios
+  * Manejo de transacciones
+  * Gestión de errores
+- Validar:
+  * Gestión de rutas de aprendizaje
+  * Integración con Areas y Media
+  * Manejo de transacciones DB
+  * Gestión de ordenamiento
+  * Reordenamiento automático
+- Tests necesarios:
+  * Operaciones CRUD
+  * Gestión de rutas de aprendizaje
+  * Integración con Areas y Media
+  * Casos de error
+- Integridad:
+  * No hay conflictos con Areas
+  * Transacciones completas
+  * Rollback funcionando
+```
+
+### Dificultades y Soluciones
+
+[Se completará durante la ejecución de la tarea]
+
+### Notas Adicionales
+- Mantener consistencia con el sistema de lógica de negocio de Areas
+- Asegurar que las transacciones son atómicas
+- Documentar cualquier lógica de negocio especial
+
+## Tarea 9: Vistas y Componentes
+Fecha: 2024-01-09
+
+⚠️ **ADVERTENCIA IMPORTANTE**
+Esta tarea requiere una atención especial a la consistencia y replicación exacta del patrón de Areas. En implementaciones anteriores, las desviaciones del patrón establecido han causado problemas de integración y funcionalidad. Es CRÍTICO:
+1. NO innovar ni añadir funcionalidades no presentes en Areas
+2. COPIAR exactamente la estructura y nombrado de archivos
+3. MANTENER la misma jerarquía de componentes
+4. REPLICAR los mismos patrones de diseño y UX
+5. USAR los mismos componentes base
+
+### Prompt Utilizado
+
+```code
+CONTEXTO INMEDIATO:
+- Archivos a crear/modificar: 
+  * resources/views/paths/*.blade.php (crear)
+  * resources/views/admin/paths/*.blade.php (crear)
+  * resources/views/educa/paths/*.blade.php (crear)
+  * resources/views/components/paths/*.blade.php (crear)
+- Vistas existentes de referencia:
+  * resources/views/areas/*.blade.php
+  * resources/views/admin/areas/*.blade.php
+  * resources/views/educa/areas/*.blade.php
+  * resources/views/components/areas/*.blade.php
+- Funcionalidad actual:
+  * Controladores implementados
+  * Rutas definidas
+  * Servicios configurados
+- Vistas necesarias:
+  * Listados (index, trashed)
+  * Formularios (create, edit)
+  * Detalles (show)
+  * Componentes específicos
+- Dependencias:
+  * Layouts existentes
+  * Componentes base
+  * Assets y estilos
+  * Scripts JS
+
+RESTRICCIONES:
+- ⚠️ NO modificar vistas de Areas existentes
+- ⚠️ NO alterar componentes base
+- ⚠️ NO añadir funcionalidades extra
+- ⚠️ MANTENER exactamente la misma estructura
+- ⚠️ USAR los mismos nombres de archivo
+- ⚠️ REPLICAR la misma jerarquía
+- SEGUIR convenciones de Blade
+- RESPETAR organización de assets
+
+REFERENCIA:
+- Implementación base: 
+  * Todas las vistas de Areas
+  * Componentes de Areas
+  * Layouts existentes
+- Documentación: 
+  * analisis-paths-v1.md (Punto 9)
+  * Laravel Blade docs
+- Archivos relacionados:
+  * resources/js/app.js
+  * resources/css/app.css
+  * webpack.mix.js
+- Commits: feat/areas-module
+
+TAREA:
+- Acción: Implementar vistas y componentes para Paths
+- Resultado: Sistema de vistas completo y consistente
+- Dependencias: 
+  * Controladores implementados
+  * Rutas configuradas
+  * Servicios funcionando
+
+VERIFICACIÓN:
+- Comprobar:
+  * Estructura idéntica a Areas
+  * Nombres de archivo coincidentes
+  * Jerarquía de componentes
+  * Patrones de diseño
+- Validar:
+  * Funcionamiento de formularios
+  * Visualización de listados
+  * Gestión de medios
+  * Navegación correcta
+- Tests visuales:
+  * Responsive design
+  * Estados de carga
+  * Mensajes de error
+  * Consistencia UI
+- Integridad:
+  * No hay conflictos con Areas
+  * Assets cargados correctamente
+  * JS funcionando
+  * Estilos aplicados
+
+PROCESO DE IMPLEMENTACIÓN:
+1. COPIAR estructura exacta de Areas
+2. REEMPLAZAR 'area' por 'path' en nombres
+3. ADAPTAR referencias a modelos
+4. MANTENER toda la funcionalidad existente
+5. NO añadir características nuevas
+
+PUNTOS DE VERIFICACIÓN:
+1. ¿La vista existe en Areas? → SI: copiar y adaptar, NO: no crear
+2. ¿El componente existe en Areas? → SI: copiar y adaptar, NO: no crear
+3. ¿La funcionalidad existe en Areas? → SI: implementar igual, NO: no añadir
+4. ¿El diseño coincide con Areas? → SI: continuar, NO: ajustar
+5. ¿La UX es idéntica? → SI: continuar, NO: corregir
+```
+
+### Dificultades y Soluciones
+
+[Se completará durante la ejecución de la tarea]
+
+### Notas Adicionales
+- Mantener absoluta consistencia con el módulo Areas
+- No innovar ni añadir funcionalidades extra
+- Documentar cualquier decisión de adaptación necesaria
+- Verificar cada vista contra su equivalente en Areas
