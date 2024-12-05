@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Path;
+use App\Models\Area;
 use App\Services\PathService;
 use App\Http\Requests\PathRequest;
 use Illuminate\Http\Request;
@@ -130,7 +131,8 @@ class PathController extends BaseController
     {
         $path = new Path();
         $pathsList = $this->flattenPathList(Path::getHierarchicalList());
-        return view('admin.paths.create', compact('path', 'pathsList'));
+        $areasList = $this->getAreasForSelect(Area::getHierarchicalList());
+        return view('admin.paths.create', compact('path', 'pathsList', 'areasList'));
     }
 
     /**
@@ -211,7 +213,8 @@ class PathController extends BaseController
     public function privateEdit(Path $path)
     {
         $pathsList = $this->flattenPathList(Path::getHierarchicalList($path->id));
-        return view('admin.paths.edit', compact('path', 'pathsList'));
+        $areasList = $this->getAreasForSelect(Area::getHierarchicalList());
+        return view('admin.paths.edit', compact('path', 'pathsList', 'areasList'));
     }
 
     /**
@@ -262,10 +265,22 @@ class PathController extends BaseController
     /**
      * Display a listing of trashed paths.
      */
-    public function privateTrashed()
+    public function privateTrashed(Request $request)
     {
         try {
-            $paths = Path::onlyTrashed()->paginate(env('PAGINATION_PER_PAGE', 12));
+            $perPage = env('PAGINATION_PER_PAGE', 12);
+            $query = Path::onlyTrashed()->with(['user', 'parent', 'area']);
+
+            // Aplicar búsqueda si existe
+            $query = $this->applyPathFilters($query, $request->input('search'));
+
+            $paths = $query->paginate($perPage);
+
+            // Mantener los parámetros en la paginación
+            if ($request->has('search')) {
+                $paths->appends(['search' => $request->input('search')]);
+            }
+
             return view('admin.paths.trashed', compact('paths'));
         } catch (\Exception $e) {
             Log::error('Error loading trashed paths: ' . $e->getMessage());
@@ -311,8 +326,11 @@ class PathController extends BaseController
     public function educaProgress($slug)
     {
         try {
-            $path = Path::where('slug', $slug)->published()->firstOrFail();
-            // Aquí se implementará la lógica de progreso
+            $path = Path::where('slug', $slug)
+                       ->with(['user', 'parent', 'area'])
+                       ->published()
+                       ->firstOrFail();
+            
             return view('educa.paths.progress', compact('path'));
         } catch (\Exception $e) {
             Log::error('Error showing path progress: ' . $e->getMessage());
@@ -335,20 +353,30 @@ class PathController extends BaseController
     }
 
     /**
-     * Flatten the hierarchical path list for select inputs.
+     * Convierte la lista jerárquica en una lista plana para el select
      */
-    protected function flattenPathList($paths, $prefix = '')
+    protected function flattenPathList($paths, &$result = []): array
     {
-        $list = [];
         foreach ($paths as $path) {
-            $list[$path->id] = $prefix . $path->name;
-            if (!empty($path->children)) {
-                $list = array_merge(
-                    $list,
-                    $this->flattenPathList($path->children, $prefix . '— ')
-                );
+            $result[$path['id']] = $path['full_name'];
+            if (!empty($path['children'])) {
+                $this->flattenPathList($path['children'], $result);
             }
         }
-        return $list;
+        return $result;
+    }
+
+    /**
+     * Convierte la lista jerárquica de áreas en una lista plana para el select
+     */
+    protected function getAreasForSelect($areas, &$result = []): array
+    {
+        foreach ($areas as $area) {
+            $result[$area['id']] = $area['full_name'];
+            if (!empty($area['children'])) {
+                $this->getAreasForSelect($area['children'], $result);
+            }
+        }
+        return $result;
     }
 }

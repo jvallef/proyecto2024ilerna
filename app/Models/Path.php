@@ -205,4 +205,61 @@ class Path extends Model implements HasMedia
     {
         return $this->getFirstMediaUrl('cover', 'thumb');
     }
+
+    /**
+     * Obtiene una lista jerárquica de paths para mostrar en un select
+     * @return \Illuminate\Support\Collection
+     */
+    public static function getHierarchicalList(): \Illuminate\Support\Collection
+    {
+        // Obtener todos los paths de primer nivel ordenados por nombre
+        $query = static::whereNull('parent_id')
+            ->orderBy(DB::raw('LOWER(name)'));
+            
+        // Debug de la consulta SQL
+        \Log::info('SQL Query:', [
+            'sql' => $query->toSql(),
+            'bindings' => $query->getBindings()
+        ]);
+        
+        $paths = $query->with(['children' => function ($query) {
+                $query->orderBy(DB::raw('LOWER(name)'));
+            }])
+            ->get();
+
+        // Debug de todos los paths
+        \Log::info('Todos los paths:', Path::pluck('name')->toArray());
+        \Log::info('Paths de primer nivel:', $paths->pluck('name')->toArray());
+            
+        return $paths->map(function ($path) {
+                return [
+                    'id' => $path->id,
+                    'name' => $path->name,
+                    'depth' => 0,
+                    'full_name' => $path->name,
+                    'children' => $path->getChildrenHierarchy(1)
+                ];
+            });
+    }
+
+    /**
+     * Función auxiliar recursiva para construir la jerarquía
+     * @param int $depth
+     * @return \Illuminate\Support\Collection
+     */
+    protected function getChildrenHierarchy(int $depth): \Illuminate\Support\Collection
+    {
+        return $this->childrenAlphabetically()
+            ->get()
+            ->map(function ($child) use ($depth) {
+                $prefix = str_repeat('&nbsp;&nbsp;&nbsp;&nbsp;', $depth);
+                return [
+                    'id' => $child->id,
+                    'name' => $child->name,
+                    'depth' => $depth,
+                    'full_name' => $prefix . $child->name,
+                    'children' => $child->getChildrenHierarchy($depth + 1)
+                ];
+            });
+    }
 }

@@ -64,6 +64,9 @@ class PathService
                 );
             }
 
+            // Manejar el campo featured explícitamente
+            $data['featured'] = isset($data['featured']) ? true : false;
+
             $path->update($data);
 
             // Procesar imagen si se proporciona

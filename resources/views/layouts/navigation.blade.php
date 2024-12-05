@@ -27,6 +27,9 @@
                             <x-nav-link :href="route('admin.areas.index')" :active="request()->routeIs('admin.areas.*')" class="text-white hover:text-gray-200">
                                 {{ __('Areas') }}
                             </x-nav-link>
+                            <x-nav-link :href="route('admin.paths.index')" :active="request()->routeIs('admin.paths.*')" class="text-white hover:text-gray-200">
+                                {{ __('Rutas') }}
+                            </x-nav-link>
                         @elseif($activeRole === 'teacher')
                             <x-nav-link :href="route('workarea.dashboard')" :active="request()->routeIs('workarea.dashboard')" class="text-white hover:text-gray-200">
                                 {{ __('Dashboard') }}
@@ -146,6 +149,9 @@
                     </x-responsive-nav-link>
                     <x-responsive-nav-link :href="route('admin.areas.index')" :active="request()->routeIs('admin.areas.*')" class="text-white hover:text-gray-200">
                         {{ __('Areas') }}
+                    </x-responsive-nav-link>
+                    <x-responsive-nav-link :href="route('admin.paths.index')" :active="request()->routeIs('admin.paths.*')" class="text-white hover:text-gray-200">
+                        {{ __('Rutas') }}
                     </x-responsive-nav-link>
                 @elseif($activeRole === 'teacher')
                     <x-responsive-nav-link :href="route('workarea.dashboard')" :active="request()->routeIs('workarea.dashboard')" class="text-white hover:text-gray-200">

@@ -60,6 +60,9 @@ class AreaService
                 $data['sort_order'] = $this->getNextSortOrder($data['parent_id']);
             }
 
+            // Manejar el campo featured explícitamente
+            $data['featured'] = isset($data['featured']) ? true : false;
+
             $area->update($data);
 
             // Procesar imagen si se proporciona

@@ -29,27 +29,30 @@
                     @endif
 
                     <div class="mb-6">
-                        <div class="flex items-center justify-between">
-                            <div class="flex-1 max-w-lg">
+                        <!-- Contenedor flexible que cambia a columna en móvil -->
+                        <div class="flex flex-col space-y-4 md:flex-row md:space-y-0 md:items-center md:justify-between">
+                            <!-- Campo de búsqueda arriba en móvil, izquierda en desktop -->
+                            <div class="w-full md:max-w-lg order-1">
                                 <x-search-autocomplete 
                                     :route="route('admin.paths.index')"
                                     :search-url="route('admin.api.paths.search')"
                                     placeholder="Buscar por nombre..." />
                             </div>
-                            <div class="ml-4 flex space-x-2">
+                            <!-- Botones abajo en móvil, derecha en desktop -->
+                            <div class="flex items-center justify-center space-x-2 order-2 md:ml-6">
                                 <a href="{{ route('admin.paths.trashed') }}" 
-                                   class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white uppercase hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                                class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white uppercase hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 whitespace-nowrap">
                                     <svg class="h-4 w-4 mr-1" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
                                         <path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
                                     </svg>
-                                    {{ __('Papelera') }}
+                                    Papelera
                                 </a>
                                 <a href="{{ route('admin.paths.create') }}" 
-                                   class="inline-flex items-center px-4 py-2 bg-secondary hover:bg-secondary/90 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest focus:outline-none focus:ring-2 focus:ring-secondary focus:ring-offset-2 transition ease-in-out duration-150">
+                                class="inline-flex items-center px-4 py-2 bg-secondary hover:bg-secondary/90 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest focus:outline-none focus:ring-2 focus:ring-secondary focus:ring-offset-2 transition ease-in-out duration-150 whitespace-nowrap">
                                     <svg class="h-4 w-4 mr-1" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
                                         <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
                                     </svg>
-                                    {{ __('Nueva Ruta') }}
+                                    Nueva Ruta
                                 </a>
                             </div>
                         </div>
@@ -139,7 +142,7 @@
                                             @endif
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap">
-                                            <x-path-status :path="$path" />
+                                            <x-path-status :status="$path->status" />
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                             {{ $path->sort_order }}
