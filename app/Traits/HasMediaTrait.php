@@ -43,6 +43,13 @@ trait HasMediaTrait
             $this->addMediaCollection('files')
                 ->useDisk('public');
         }
+
+        // Colección específica para banners
+        if (method_exists($this, 'registerBannerMediaCollection')) {
+            $this->addMediaCollection('banner')
+                ->singleFile()
+                ->useDisk('public');
+        }
     }
 
     /**
@@ -72,6 +79,13 @@ trait HasMediaTrait
             ->nonQueued()
             ->keepOriginalImageFormat()
             ->performOnCollections('default', 'avatar', 'cover');
+
+        $this->addMediaConversion('banner')
+            ->width($conversions['banner']['width'])
+            ->height($conversions['banner']['height'])
+            ->nonQueued()
+            ->keepOriginalImageFormat()
+            ->performOnCollections('banner');
     }
 
     /**

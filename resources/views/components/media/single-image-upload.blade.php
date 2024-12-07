@@ -11,9 +11,9 @@
 
 @php
     $config = [
-        'maxSize' => config('media.cover.max_file_size'),
-        'allowedTypes' => config('media.cover.allowed_types'),
-        'maxDimensions' => config('media.cover.max_dimensions')
+        'maxSize' => config("media.{$collection}.max_file_size"),
+        'allowedTypes' => config("media.{$collection}.allowed_types"),
+        'maxDimensions' => config("media.{$collection}.max_dimensions")
     ];
     
     $hasImage = $model && $model->getFirstMediaUrl($collection);

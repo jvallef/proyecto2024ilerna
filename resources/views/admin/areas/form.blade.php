@@ -155,7 +155,7 @@
             {{ __('Cancelar') }}
         </x-secondary-button>
         <x-primary-button>
-            {{ isset($area) ? __('Actualizar') : __('Crear') }}
+            {{ isset($area) && $area->id ? __('Actualizar') : __('Crear') }}
         </x-primary-button>
     </div>
 </form>

@@ -164,7 +164,7 @@ class AreaController extends BaseController
         } catch (\Exception $e) {
             \DB::rollBack();
             Log::error('Error creating area: ' . $e->getMessage());
-            return back()->with('error', 'Error al crear el área.')
+            return back()->with('error', $e->getMessage())
                         ->withInput();
         }
     }
@@ -233,12 +233,12 @@ class AreaController extends BaseController
             \DB::commit();
 
             return redirect()->route('admin.areas.index')
-                ->with('success', 'Area updated successfully.');
+                ->with('success', 'Área actualizada correctamente.');
             
         } catch (\Exception $e) {
             \DB::rollBack();
             Log::error('Error updating area: ' . $e->getMessage());
-            return back()->with('error', 'Error al actualizar el área.')
+            return back()->with('error', $e->getMessage())
                         ->withInput();
         }
     }
@@ -251,7 +251,7 @@ class AreaController extends BaseController
         try {
             $this->areaService->delete($area);
             return redirect()->route('admin.areas.index')
-                ->with('success', 'Area deleted successfully.');
+                ->with('success', 'Área eliminada correctamente.');
         } catch (\Exception $e) {
             Log::error('Error deleting area: ' . $e->getMessage());
             return back()->with('error', $e->getMessage());
@@ -293,10 +293,10 @@ class AreaController extends BaseController
             $area = Area::onlyTrashed()->findOrFail($id);
             $area->restore();
             return redirect()->route('admin.areas.trashed')
-                ->with('success', 'Area restored successfully.');
+                ->with('success', 'Área restaurada correctamente.');
         } catch (\Exception $e) {
             Log::error('Error restoring area: ' . $e->getMessage());
-            return back()->with('error', 'Error al restaurar el área.');
+            return back()->with('error', $e->getMessage());
         }
     }
 
@@ -309,10 +309,10 @@ class AreaController extends BaseController
             $area = Area::onlyTrashed()->findOrFail($id);
             $area->forceDelete();
             return redirect()->route('admin.areas.trashed')
-                ->with('success', 'Area permanently deleted.');
+                ->with('success', 'Área eliminada permanentemente.');
         } catch (\Exception $e) {
             Log::error('Error force deleting area: ' . $e->getMessage());
-            return back()->with('error', 'Error al eliminar permanentemente el área.');
+            return back()->with('error', $e->getMessage());
         }
     }
 

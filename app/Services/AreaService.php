@@ -87,14 +87,19 @@ class AreaService
      *
      * @param Area $area
      * @return bool
-     * @throws \Exception Si el área tiene hijos
+     * @throws \Exception Si el área tiene sub-áreas o paths asociados
      */
     public function delete(Area $area): bool
     {
         try {
-            // Verificar si el área tiene hijos
+            // Verificar si el área tiene sub-áreas
             if ($area->children()->count() > 0) {
                 throw new \Exception('No se puede eliminar un área que tiene sub-áreas.');
+            }
+
+            // Verificar si el área tiene paths asociados
+            if ($area->paths()->count() > 0) {
+                throw new \Exception('No se puede eliminar un área que tiene rutas asociadas.');
             }
 
             DB::beginTransaction();

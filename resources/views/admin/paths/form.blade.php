@@ -176,7 +176,7 @@
             {{ __('Cancelar') }}
         </x-secondary-button>
         <x-primary-button>
-            {{ isset($path) ? __('Actualizar') : __('Crear') }}
+            {{ isset($path) && $path->id ? __('Actualizar') : __('Crear') }}
         </x-primary-button>
     </div>
 </form>

@@ -91,15 +91,22 @@ class PathService
      *
      * @param Path $path
      * @return bool
-     * @throws \Exception Si el path tiene hijos
+     * @throws \Exception Si el path tiene sub-paths o cursos asociados
      */
     public function delete(Path $path): bool
     {
         try {
-            // Verificar si el path tiene hijos
+            // Verificar si el path tiene sub-paths
             if ($path->children()->count() > 0) {
-                throw new \Exception('No se puede eliminar un path que tiene sub-paths.');
+                throw new \Exception('No se puede eliminar una ruta que tiene sub-rutas.');
             }
+
+            // TODO: Implementar validación de cursos cuando el módulo esté desarrollado
+            /*
+            if ($path->courses()->count() > 0) {
+                throw new \Exception('No se puede eliminar una ruta que tiene cursos asociados.');
+            }
+            */
 
             DB::beginTransaction();
 

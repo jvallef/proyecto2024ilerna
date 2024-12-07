@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\AgeGroup;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -13,10 +14,11 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
 use App\Traits\GeneratesSlug;
+use App\Traits\HasMediaTrait;
 
 class Course extends Model implements HasMedia
 {
-    use HasFactory, SoftDeletes, InteractsWithMedia, GeneratesSlug;
+    use HasFactory, SoftDeletes, HasMediaTrait, GeneratesSlug;
 
     protected $fillable = [
         'title',
@@ -110,5 +112,63 @@ class Course extends Model implements HasMedia
             'deactivated_at' => $this->author_deactivated_at,
             'permanently_deleted' => $this->author_permanently_deleted,
         ];
+    }
+
+    /**
+     * Register the cover media collection for this model
+     */
+    public function registerCoverMediaCollection(): void
+    {
+        // Este método vacío es suficiente para activar la colección 'cover' en HasMediaTrait
+    }
+
+    /**
+     * Register the banner media collection for this model
+     */
+    public function registerBannerMediaCollection(): void
+    {
+        $this->addMediaCollection('banner')
+            ->singleFile()
+            ->useDisk('public')
+            ->acceptsFile(function ($file) {
+                return in_array(
+                    $file->mimeType,
+                    array_map(fn($ext) => 'image/' . $ext, ['jpg', 'jpeg', 'png', 'webp'])
+                );
+            })
+            ->withResponsiveImages();
+    }
+
+    /**
+     * Register the file media collection for this model
+     */
+    public function registerFileMediaCollection(): void
+    {
+        // Este método vacío es suficiente para activar la colección 'files' en HasMediaTrait
+    }
+
+    public function setAgeGroupAttribute(?string $value)
+    {
+        $this->attributes['age_group'] = AgeGroup::toDatabase($value);
+    }
+
+    public function getAgeGroupAttribute(?string $value): string
+    {
+        return AgeGroup::fromDatabase($value);
+    }
+
+    /**
+     * The "booted" method of the model.
+     */
+    protected static function booted()
+    {
+        parent::booted();
+
+        // Cuando se elimine el curso, eliminar sus medios asociados
+        static::deleting(function ($course) {
+            $course->clearMediaCollection('cover');
+            $course->clearMediaCollection('banner');
+            $course->clearMediaCollection('files');
+        });
     }
 }

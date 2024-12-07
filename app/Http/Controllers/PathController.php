@@ -156,7 +156,7 @@ class PathController extends BaseController
             \DB::commit();
 
             return redirect()->route('admin.paths.index')
-                           ->with('success', 'Ruta creada correctamente.')
+                           ->with('success', 'La ruta se ha creado correctamente.')
                            ->withHeaders([
                                'Cache-Control' => 'no-cache, no-store, must-revalidate',
                                'Pragma' => 'no-cache',
@@ -166,7 +166,7 @@ class PathController extends BaseController
         } catch (\Exception $e) {
             \DB::rollBack();
             Log::error('Error creating path: ' . $e->getMessage());
-            return back()->with('error', 'Error al crear la ruta.')
+            return back()->with('error', $e->getMessage())
                         ->withInput();
         }
     }
@@ -237,12 +237,12 @@ class PathController extends BaseController
             \DB::commit();
 
             return redirect()->route('admin.paths.index')
-                           ->with('success', 'Ruta actualizada correctamente.');
+                           ->with('success', 'La ruta se ha actualizado correctamente.');
                            
         } catch (\Exception $e) {
             \DB::rollBack();
             Log::error('Error updating path: ' . $e->getMessage());
-            return back()->with('error', 'Error al actualizar la ruta.')
+            return back()->with('error', $e->getMessage())
                         ->withInput();
         }
     }
@@ -255,10 +255,10 @@ class PathController extends BaseController
         try {
             $this->pathService->delete($path);
             return redirect()->route('admin.paths.index')
-                           ->with('success', 'Ruta eliminada correctamente.');
+                           ->with('success', 'La ruta se ha eliminado correctamente.');
         } catch (\Exception $e) {
             Log::error('Error deleting path: ' . $e->getMessage());
-            return back()->with('error', 'Error al eliminar la ruta.');
+            return back()->with('error', $e->getMessage());
         }
     }
 
@@ -284,7 +284,7 @@ class PathController extends BaseController
             return view('admin.paths.trashed', compact('paths'));
         } catch (\Exception $e) {
             Log::error('Error loading trashed paths: ' . $e->getMessage());
-            return back()->with('error', 'Error al cargar las rutas eliminadas.');
+            return back()->with('error', 'Ha ocurrido un error al cargar las rutas eliminadas.');
         }
     }
 
@@ -297,10 +297,10 @@ class PathController extends BaseController
             $path = Path::onlyTrashed()->findOrFail($id);
             $path->restore();
             return redirect()->route('admin.paths.trashed')
-                           ->with('success', 'Ruta restaurada correctamente.');
+                           ->with('success', 'La ruta se ha restaurado correctamente.');
         } catch (\Exception $e) {
             Log::error('Error restoring path: ' . $e->getMessage());
-            return back()->with('error', 'Error al restaurar la ruta.');
+            return back()->with('error', $e->getMessage());
         }
     }
 
@@ -313,10 +313,10 @@ class PathController extends BaseController
             $path = Path::onlyTrashed()->findOrFail($id);
             $path->forceDelete();
             return redirect()->route('admin.paths.trashed')
-                           ->with('success', 'Ruta eliminada permanentemente.');
+                           ->with('success', 'La ruta se ha eliminado permanentemente.');
         } catch (\Exception $e) {
             Log::error('Error force deleting path: ' . $e->getMessage());
-            return back()->with('error', 'Error al eliminar permanentemente la ruta.');
+            return back()->with('error', $e->getMessage());
         }
     }
 

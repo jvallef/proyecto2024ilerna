@@ -4,6 +4,7 @@ use App\Http\Controllers\TestAvatarController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\AreaController;
 use App\Http\Controllers\PathController;
+use App\Http\Controllers\CourseController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\RoleSwitchController;
 use App\Http\Controllers\AdminDashboardController;
@@ -16,6 +17,8 @@ use App\Http\Controllers\Api\AreaSearchController;
 use App\Http\Controllers\Api\AreaTrashedSearchController;
 use App\Http\Controllers\Api\PathSearchController;
 use App\Http\Controllers\Api\PathTrashedSearchController;
+use App\Http\Controllers\Api\CourseSearchController;
+use App\Http\Controllers\Api\CourseTrashedSearchController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -30,6 +33,10 @@ Route::get('/areas/{slug}', [AreaController::class, 'publicShow'])->name('areas.
 Route::get('/paths', [PathController::class, 'publicIndex'])->name('paths.index');
 Route::get('/paths/{slug}', [PathController::class, 'publicShow'])->name('paths.show');
 
+// Rutas públicas de courses
+Route::get('/courses', [CourseController::class, 'publicIndex'])->name('courses.index');
+Route::get('/courses/{slug}', [CourseController::class, 'publicShow'])->name('courses.show');
+
 // Rutas de búsqueda de áreas
 Route::prefix('api')->group(function () {
     // Ruta pública de búsqueda
@@ -39,6 +46,10 @@ Route::prefix('api')->group(function () {
     // Ruta pública de búsqueda de paths
     Route::get('/search/paths/public', [\App\Http\Controllers\Api\PathSearchController::class, 'suggestions'])
         ->name('api.paths.search.public');
+
+    // Ruta pública de búsqueda de courses
+    Route::get('/search/courses/public', [\App\Http\Controllers\Api\CourseSearchController::class, 'suggestions'])
+        ->name('api.courses.search.public');
 });
 
 // Rutas que requieren autenticación
@@ -86,6 +97,19 @@ Route::middleware(['auth'])->group(function () {
         Route::match(['put', 'patch'], 'paths/{path}', [PathController::class, 'privateUpdate'])->name('paths.update');
         Route::delete('paths/{path}', [PathController::class, 'privateDestroy'])->name('paths.destroy');
         Route::get('paths/{path}', [PathController::class, 'privateShow'])->name('paths.show');
+
+        // Rutas admin de courses
+        Route::get('courses/trashed', [CourseController::class, 'privateTrashed'])->name('courses.trashed');
+        Route::get('courses/create', [CourseController::class, 'privateCreate'])->name('courses.create');
+        Route::get('courses/{course}/edit', [CourseController::class, 'privateEdit'])->name('courses.edit');
+        Route::patch('courses/{course}/restore', [CourseController::class, 'privateRestore'])->name('courses.restore');
+        Route::delete('courses/{course}/force-delete', [CourseController::class, 'privateForceDelete'])->name('courses.force-delete');
+        
+        Route::get('courses', [CourseController::class, 'privateIndex'])->name('courses.index');
+        Route::post('courses', [CourseController::class, 'privateStore'])->name('courses.store');
+        Route::match(['put', 'patch'], 'courses/{course}', [CourseController::class, 'privateUpdate'])->name('courses.update');
+        Route::delete('courses/{course}', [CourseController::class, 'privateDestroy'])->name('courses.destroy');
+        Route::get('courses/{course}', [CourseController::class, 'privateShow'])->name('courses.show');
         
         // API de búsqueda
         Route::get('/api/search/users', [UserSearchController::class, 'suggestions'])
@@ -98,6 +122,10 @@ Route::middleware(['auth'])->group(function () {
             ->name('api.paths.search');
         Route::get('/api/search/paths/trashed', [PathTrashedSearchController::class, 'suggestions'])
             ->name('api.paths.trashed.search');
+        Route::get('/api/search/courses', [CourseSearchController::class, 'suggestions'])
+            ->name('api.courses.search');
+        Route::get('/api/search/courses/trashed', [CourseTrashedSearchController::class, 'suggestions'])
+            ->name('api.courses.trashed.search');
     });
 
     // Rutas de profesor
@@ -113,6 +141,13 @@ Route::middleware(['auth'])->group(function () {
         Route::get('paths', [PathController::class, 'educaIndex'])->name('paths.index');
         Route::get('paths/{slug}', [PathController::class, 'educaShow'])->name('paths.show');
         Route::get('paths/{slug}/progress', [PathController::class, 'educaProgress'])->name('paths.progress');
+
+        // Rutas educativas de courses para profesores
+        Route::get('courses', [CourseController::class, 'educaIndex'])->name('courses.index');
+        Route::get('courses/{slug}', [CourseController::class, 'educaShow'])->name('courses.show');
+        Route::get('courses/{slug}/progress', [CourseController::class, 'educaProgress'])->name('courses.progress');
+        Route::post('courses/{course}/enroll', [CourseController::class, 'enrollStudent'])->name('courses.enroll');
+        Route::delete('courses/{course}/unenroll', [CourseController::class, 'unenrollStudent'])->name('courses.unenroll');
     });
 
     // Rutas de estudiante
@@ -128,6 +163,13 @@ Route::middleware(['auth'])->group(function () {
         Route::get('paths', [PathController::class, 'educaIndex'])->name('paths.index');
         Route::get('paths/{slug}', [PathController::class, 'educaShow'])->name('paths.show');
         Route::get('paths/{slug}/progress', [PathController::class, 'educaProgress'])->name('paths.progress');
+
+        // Rutas educativas de courses para estudiantes
+        Route::get('courses', [CourseController::class, 'educaIndex'])->name('courses.index');
+        Route::get('courses/{slug}', [CourseController::class, 'educaShow'])->name('courses.show');
+        Route::get('courses/{slug}/progress', [CourseController::class, 'educaProgress'])->name('courses.progress');
+        Route::post('courses/{course}/enroll', [CourseController::class, 'enroll'])->name('courses.enroll');
+        Route::delete('courses/{course}/unenroll', [CourseController::class, 'unenroll'])->name('courses.unenroll');
     });
 
     // Ruta para la página de prueba de uploads
