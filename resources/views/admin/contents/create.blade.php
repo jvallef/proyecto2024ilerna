@@ -9,6 +9,10 @@
                         <form id="contentForm" action="{{ route('admin.contents.store') }}" method="POST" enctype="multipart/form-data" class="mt-6">
                             @csrf
                             
+                            @if(isset($course_id))
+                                <input type="hidden" name="course_id" value="{{ $course_id }}">
+                            @endif
+                            
                             <div class="mb-4">
                                 <textarea id="markdown" name="markdown" 
                                     class="w-full rounded-md shadow-sm border-gray-300 focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50" 
@@ -28,7 +32,7 @@
                             </div>
 
                             <div class="flex items-center gap-4">
-                                <x-primary-button type="button" onclick="window.location='{{ route('admin.contents.index') }}'">
+                                <x-primary-button type="button" onclick="window.location='{{ route('admin.contents.index.test') }}'">
                                     Cancelar
                                 </x-primary-button>
                                 <x-secondary-button type="button" onclick="previewContent()">
@@ -59,7 +63,7 @@
                     </button>
                 </div>
                 <div class="p-6 overflow-y-auto max-h-[calc(100vh-200px)]">
-                    <div id="previewContent" class="prose prose-slate max-w-none">
+                    <div id="preview" class="prose prose-slate max-w-none">
                         <!-- El contenido se insertará aquí -->
                     </div>
                 </div>
@@ -77,33 +81,29 @@
         formData.append('markdown', markdownContent);
         formData.append('_token', document.querySelector('input[name="_token"]').value);
         
-        fetch('{{ route('admin.contents.preview') }}', {
+        fetch('{{ route('admin.contents.preview.test') }}', {
             method: 'POST',
             body: formData,
             headers: {
-                'X-Requested-With': 'XMLHttpRequest',
-                'X-CSRF-TOKEN': document.querySelector('input[name="_token"]').value
+                'X-Requested-With': 'XMLHttpRequest'
             }
         })
         .then(response => {
             if (!response.ok) {
-                throw new Error('Error en la respuesta del servidor');
+                throw new Error(`HTTP error! status: ${response.status}`);
             }
             return response.json();
         })
         .then(data => {
-            console.log('Respuesta del servidor:', data); // Debug
-            
             if (data.error) {
-                alert(data.error);
-                return;
+                throw new Error(data.error);
             }
-            
-            document.getElementById('previewContent').innerHTML = data.preview;
+            console.log('Respuesta:', data); // Debug
+            document.getElementById('preview').innerHTML = data.preview;
             document.getElementById('previewModal').classList.remove('hidden');
         })
         .catch(error => {
-            console.error('Error:', error);
+            console.error('Error completo:', error); // Debug detallado
             alert('Error al generar la vista previa: ' + error.message);
         });
     }

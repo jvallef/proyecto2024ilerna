@@ -15,10 +15,11 @@ use Illuminate\Database\Eloquent\Relations\MorphMany;
 
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
+use App\Traits\GeneratesSlug;
 
 class Content extends Model implements HasMedia
 {
-    use HasFactory, SoftDeletes, InteractsWithMedia;
+    use HasFactory, SoftDeletes, InteractsWithMedia, GeneratesSlug;
 
     protected $fillable = [
         'type',
@@ -76,7 +77,9 @@ class Content extends Model implements HasMedia
      */
     public function courses(): BelongsToMany
     {
-        return $this->belongsToMany(Course::class, 'content_course');
+        return $this->belongsToMany(Course::class, 'content_course')
+                    ->withPivot('sort')
+                    ->withTimestamps();
     }
 
     /**

@@ -432,23 +432,28 @@ class CourseController extends BaseController
     public function addContent(Request $request, Course $course)
     {
         try {
-            DB::beginTransaction();
+            \DB::beginTransaction();
             
             $validated = $request->validate([
-                'path_id' => 'required|exists:paths,id',
-                'area_id' => 'required|exists:areas,id',
+                'content_id' => 'required|exists:contents,id',
             ]);
             
-            $course->paths()->attach($validated['path_id']);
+            // Obtener el siguiente valor de sort
+            $maxSort = $course->contents()->max('sort') ?? 0;
             
-            DB::commit();
+            $course->contents()->attach($validated['content_id'], [
+                'sort' => $maxSort + 1
+            ]);
+            
+            \DB::commit();
             return redirect()->route('admin.courses.show', $course)
                            ->with('success', 'Contenido añadido correctamente');
                            
         } catch (\Exception $e) {
-            DB::rollBack();
-            Log::error('Error añadiendo contenido al curso: ' . $e->getMessage());
-            return back()->with('error', 'Error al añadir el contenido');
+            \DB::rollBack();
+            Log::error('Error al añadir contenido al curso: ' . $e->getMessage());
+            return redirect()->back()
+                           ->with('error', 'Error al añadir el contenido al curso');
         }
     }
 

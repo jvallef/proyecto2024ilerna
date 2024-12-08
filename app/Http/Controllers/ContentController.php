@@ -92,11 +92,72 @@ MARKDOWN;
         return view('admin.contents.create', compact('template'));
     }
 
+    public function createTest(Request $request, $course = 1)
+    {
+        $template = <<<MARKDOWN
+# Título de la Lección
+
+## Metadata
+- Duración: 30 minutos
+- Nivel: Básico
+- Prerequisitos: Ninguno
+
+## Descripción Breve
+Escribe aquí una breve descripción de la lección...
+
+## Objetivos de Aprendizaje
+1. Primer objetivo
+2. Segundo objetivo
+3. Tercer objetivo
+
+## Contenido Principal
+
+### Sección 1
+Tu contenido aquí...
+
+![Imagen Descriptiva](placeholder) 
+<!-- Para añadir una imagen, sube el archivo y reemplaza 'placeholder' con: !media[nombre-archivo] -->
+
+### Sección 2
+Más contenido aquí...
+
+### Ejemplo Práctico
+```python
+def ejemplo():
+    return "Esto es un ejemplo de código"
+```
+
+## Recursos Adicionales
+- [Recurso 1](url1)
+- [Recurso 2](url2)
+
+## Archivos Adjuntos
+- !file[presentacion.pdf]
+- !file[ejercicios.zip]
+<!-- Para añadir archivos, sube el archivo y usa la sintaxis !file[nombre-archivo] -->
+
+## Evaluación
+- Pregunta 1: ¿...?
+- Pregunta 2: ¿...?
+
+## Notas del Instructor
+Notas privadas aquí...
+MARKDOWN;
+
+        return view('admin.contents.create', [
+            'template' => $template,
+            'course_id' => $course
+        ]);
+    }
+
     public function store(Request $request)
     {
         try {
             Log::info('Iniciando store de content', [
-                'request_data' => $request->all()
+                'request_data' => $request->all(),
+                'has_course_id' => $request->has('course_id'),
+                'course_id' => $request->input('course_id'),
+                'route_name' => $request->route()->getName()
             ]);
 
             // Si es una petición AJAX para preview, solo devolvemos el HTML
@@ -112,14 +173,14 @@ MARKDOWN;
             
             Log::info('Creando content', [
                 'title' => $title,
-                'markdown' => $request->markdown
+                'markdown' => $request->markdown,
+                'course_id' => $request->input('course_id')
             ]);
 
             // Crear el content
             $content = Content::create([
                 'type' => 'lesson',
                 'title' => $title,
-                'slug' => Str::slug($title),
                 'content' => [
                     'markdown' => $request->markdown,
                     'type' => 'lesson',
@@ -132,9 +193,27 @@ MARKDOWN;
                 'status' => 'draft'
             ]);
 
-            Log::info('Content creado', [
-                'content_id' => $content->id
-            ]);
+            Log::info('Content creado', ['content_id' => $content->id]);
+
+            // Vincular al curso si se proporciona course_id
+            if ($request->filled('course_id')) {
+                $courseId = $request->input('course_id');
+                $maxSort = $content->courses()->where('course_id', $courseId)->max('sort') ?? 0;
+                
+                Log::info('Vinculando content al curso', [
+                    'content_id' => $content->id,
+                    'course_id' => $courseId,
+                    'sort' => $maxSort + 1
+                ]);
+
+                $content->courses()->attach($courseId, [
+                    'sort' => $maxSort + 1
+                ]);
+                
+                Log::info('Content vinculado al curso exitosamente');
+            } else {
+                Log::info('No se proporcionó course_id, el content no será vinculado a ningún curso');
+            }
 
             // Procesar archivos si existen
             if ($request->hasFile('files')) {
@@ -146,7 +225,8 @@ MARKDOWN;
             }
 
             return redirect()->route('admin.contents.index')
-                           ->with('success', 'Contenido creado exitosamente');
+                           ->with('success', 'Contenido creado exitosamente' . 
+                                ($request->filled('course_id') ? ' y vinculado al curso' : ''));
         } catch (\Exception $e) {
             Log::error('Error creating content: ' . $e->getMessage(), [
                 'exception' => $e,
@@ -250,6 +330,14 @@ MARKDOWN;
         ]);
     }
     
+    /**
+     * Muestra el formulario de edición de un contenido
+     */
+    public function edit($content)
+    {
+        return view('admin.contents.edit', ['message' => 'Esto es la edición de un contenido']);
+    }
+
     private function getFileIcon($mimeType)
     {
         $icon = '<svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">';

@@ -65,7 +65,9 @@ class Course extends Model implements HasMedia
      */
     public function contents(): BelongsToMany
     {
-        return $this->belongsToMany(Content::class, 'content_course');
+        return $this->belongsToMany(Content::class, 'content_course')
+                    ->withPivot('sort')
+                    ->withTimestamps();
     }
 
     /**

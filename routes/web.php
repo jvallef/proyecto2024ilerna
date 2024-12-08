@@ -112,18 +112,21 @@ Route::middleware(['auth'])->group(function () {
         Route::delete('courses/{course}', [CourseController::class, 'privateDestroy'])->name('courses.destroy');
         Route::get('courses/{course}', [CourseController::class, 'privateShow'])->name('courses.show');
         
-        // Rutas de contenido
-        Route::get('/contents', [ContentController::class, 'index'])->name('contents.index');
-        Route::get('/contents/create', [ContentController::class, 'create'])->name('contents.create');
-        Route::get('/contents/{content}', [ContentController::class, 'show'])->name('contents.show');
-        Route::post('/contents/preview', [ContentController::class, 'preview'])->name('contents.preview');
-        Route::post('/contents', [ContentController::class, 'store'])->name('contents.store');
-        
+        // Rutas independientes de contenido
+        Route::prefix('contents')->name('contents.')->group(function () {
+            Route::get('/test', [ContentController::class, 'index'])->name('index.test');
+            Route::post('/test/preview', [ContentController::class, 'preview'])->name('preview.test');
+            Route::get('/test/create', [ContentController::class, 'createTest'])->name('create.test');
+            Route::post('/store', [ContentController::class, 'store'])->name('store');
+        });
+
         // Rutas de gestión de contenido del curso
-        Route::post('/courses/{course}/content/add', [CourseController::class, 'addContent'])
-             ->name('courses.content.add');
-        Route::post('/courses/{course}/content/remove', [CourseController::class, 'removeContent'])
-             ->name('courses.content.remove');
+        Route::prefix('courses/{course}/content')->name('courses.content.')->group(function () {
+            Route::get('/add', [ContentController::class, 'create'])->name('create');
+            Route::post('/add', [CourseController::class, 'addContent'])->name('add');
+            Route::delete('/{content}', [CourseController::class, 'removeContent'])->name('destroy');
+            Route::get('/{content}/edit', [CourseController::class, 'editContent'])->name('edit');
+        });
         
         // API de búsqueda
         Route::get('/api/search/users', [UserSearchController::class, 'suggestions'])
