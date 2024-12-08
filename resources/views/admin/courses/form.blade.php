@@ -129,6 +129,18 @@
             />
         </div>
 
+        <!-- Banner -->
+        <div class="mt-4">
+            <x-media.single-image-upload
+                :model="isset($course) ? $course : null"
+                name="banner"
+                :label="__('Banner del Curso')"
+                collection="banner"
+                :required="false"
+                aspect-ratio="21/9"
+            />
+        </div>
+
         <!-- Destacado -->
         <div class="mt-4">
             <div class="relative flex items-start">
@@ -200,8 +212,9 @@
         <x-secondary-button onclick="window.history.back()">
             {{ __('Cancelar') }}
         </x-secondary-button>
+
         <x-primary-button>
-            {{ isset($course) && $course->id ? __('Actualizar') : __('Crear') }}
+            {{ isset($course) ? __('Actualizar') : __('Crear') }}
         </x-primary-button>
     </div>
 </form>

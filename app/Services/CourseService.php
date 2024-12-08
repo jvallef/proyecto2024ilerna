@@ -23,10 +23,21 @@ class CourseService
             // Crear el curso
             $course = Course::create($data);
 
+            // Sincronizar paths si se proporcionan
+            if (isset($data['paths'])) {
+                $course->paths()->sync($data['paths']);
+            }
+
             // Procesar imagen si se proporciona
-            if (isset($data['image'])) {
-                $course->addMediaFromRequest('image')
+            if (isset($data['cover'])) {
+                $course->addMediaFromRequest('cover')
                      ->toMediaCollection('cover');
+            }
+
+            // Procesar banner si se proporciona
+            if (isset($data['banner'])) {
+                $course->addMediaFromRequest('banner')
+                     ->toMediaCollection('banner');
             }
 
             DB::commit();
@@ -54,12 +65,26 @@ class CourseService
             // Manejar el campo featured explícitamente
             $data['featured'] = isset($data['featured']) ? true : false;
 
+            // Actualizar el curso
             $course->update($data);
 
+            // Sincronizar paths si se proporcionan
+            if (isset($data['paths'])) {
+                $course->paths()->sync($data['paths']);
+            }
+
             // Procesar imagen si se proporciona
-            if (isset($data['image'])) {
-                $course->addMediaFromRequest('image')
+            if (isset($data['cover'])) {
+                $course->clearMediaCollection('cover');
+                $course->addMediaFromRequest('cover')
                      ->toMediaCollection('cover');
+            }
+
+            // Procesar banner si se proporciona
+            if (isset($data['banner'])) {
+                $course->clearMediaCollection('banner');
+                $course->addMediaFromRequest('banner')
+                     ->toMediaCollection('banner');
             }
 
             DB::commit();

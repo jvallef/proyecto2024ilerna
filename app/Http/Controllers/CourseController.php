@@ -133,7 +133,7 @@ class CourseController extends BaseController
     public function privateCreate()
     {
         $course = new Course();
-        $pathsList = Path::all()->pluck('name', 'id');
+        $pathsList = $this->flattenPathList(Path::getHierarchicalList());
         return view('admin.courses.create', compact('course', 'pathsList'));
     }
 
@@ -150,11 +150,6 @@ class CourseController extends BaseController
             
             $course = $this->courseService->create($data);
 
-            if ($request->hasFile('cover')) {
-                $course->addMediaFromRequest('cover')
-                    ->toMediaCollection('cover');
-            }
-
             \DB::commit();
             return redirect()->route('admin.courses.index')
                            ->with('success', 'Curso creado correctamente.')
@@ -167,7 +162,7 @@ class CourseController extends BaseController
         } catch (\Exception $e) {
             \DB::rollBack();
             Log::error('Error creating course: ' . $e->getMessage());
-            return back()->with('error', 'No se pudo crear el curso.')
+            return back()->with('error', $e->getMessage())
                         ->withInput();
         }
     }
@@ -229,7 +224,7 @@ class CourseController extends BaseController
      */
     public function privateEdit(Course $course)
     {
-        $pathsList = Path::all()->pluck('name', 'id');
+        $pathsList = $this->flattenPathList(Path::getHierarchicalList());
         return view('admin.courses.edit', compact('course', 'pathsList'));
     }
 
@@ -240,15 +235,9 @@ class CourseController extends BaseController
     {
         try {
             \DB::beginTransaction();
-            
-            $data = $request->validated();
-            $this->courseService->update($course, $data);
 
-            if ($request->hasFile('cover')) {
-                $course->clearMediaCollection('cover');
-                $course->addMediaFromRequest('cover')
-                    ->toMediaCollection('cover');
-            }
+            $data = $request->validated();
+            $course = $this->courseService->update($course, $data);
 
             \DB::commit();
             return redirect()->route('admin.courses.index')
@@ -257,7 +246,7 @@ class CourseController extends BaseController
         } catch (\Exception $e) {
             \DB::rollBack();
             Log::error('Error updating course: ' . $e->getMessage());
-            return back()->with('error', 'No se pudo actualizar el curso.')
+            return back()->with('error', $e->getMessage())
                         ->withInput();
         }
     }
@@ -445,5 +434,19 @@ class CourseController extends BaseController
         }
         
         return $query;
+    }
+
+    /**
+     * Convierte la lista jerárquica en una lista plana para el select
+     */
+    protected function flattenPathList($paths, &$result = []): array
+    {
+        foreach ($paths as $path) {
+            $result[$path['id']] = $path['full_name'];
+            if (!empty($path['children'])) {
+                $this->flattenPathList($path['children'], $result);
+            }
+        }
+        return $result;
     }
 }
