@@ -123,9 +123,10 @@ Route::middleware(['auth'])->group(function () {
         // Rutas de gestión de contenido del curso
         Route::prefix('courses/{course}/content')->name('courses.content.')->group(function () {
             Route::get('/add', [ContentController::class, 'create'])->name('create');
-            Route::post('/add', [CourseController::class, 'addContent'])->name('add');
-            Route::delete('/{content}', [CourseController::class, 'removeContent'])->name('destroy');
-            Route::get('/{content}/edit', [CourseController::class, 'editContent'])->name('edit');
+            Route::post('/add', [ContentController::class, 'store'])->name('add');
+            Route::delete('/{content}', [ContentController::class, 'destroy'])->name('destroy');
+            Route::get('/{content}/edit', [ContentController::class, 'edit'])->name('edit');
+            Route::put('/{content}', [ContentController::class, 'update'])->name('update');
         });
         
         // API de búsqueda

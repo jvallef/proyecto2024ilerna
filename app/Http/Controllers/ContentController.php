@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Content;
+use App\Models\Course;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
@@ -37,7 +38,7 @@ class ContentController extends Controller
         return view('admin.contents.index', compact('contents'));
     }
 
-    public function create()
+    public function create(Course $course)
     {
         $template = <<<MARKDOWN
 # Título de la Lección
@@ -89,7 +90,10 @@ def ejemplo():
 Notas privadas aquí...
 MARKDOWN;
 
-        return view('admin.contents.create', compact('template'));
+        return view('admin.contents.create', [
+            'template' => $template,
+            'course_id' => $course->id
+        ]);
     }
 
     public function createTest(Request $request, $course = 1)
@@ -224,9 +228,13 @@ MARKDOWN;
                 Log::info('Archivos procesados');
             }
 
+            if ($request->filled('course_id')) {
+                return redirect()->route('admin.courses.show', $request->input('course_id'))
+                               ->with('success', 'Contenido creado y añadido al curso exitosamente');
+            }
+
             return redirect()->route('admin.contents.index')
-                           ->with('success', 'Contenido creado exitosamente' . 
-                                ($request->filled('course_id') ? ' y vinculado al curso' : ''));
+                           ->with('success', 'Contenido creado exitosamente');
         } catch (\Exception $e) {
             Log::error('Error creating content: ' . $e->getMessage(), [
                 'exception' => $e,
@@ -333,9 +341,55 @@ MARKDOWN;
     /**
      * Muestra el formulario de edición de un contenido
      */
-    public function edit($content)
+    public function edit(Course $course, Content $content)
     {
-        return view('admin.contents.edit', ['message' => 'Esto es la edición de un contenido']);
+        return view('admin.contents.edit', [
+            'content' => $content,
+            'course_id' => $course->id,
+            'markdown' => $content->content['markdown']
+        ]);
+    }
+
+    /**
+     * Actualiza un contenido existente
+     */
+    public function update(Request $request, Course $course, Content $content)
+    {
+        try {
+            // Extraer título de la primera línea del markdown
+            $title = trim(str_replace('#', '', explode("\n", $request->markdown)[0]));
+            
+            // Actualizar el contenido
+            $content->update([
+                'title' => $title,
+                'content' => [
+                    'markdown' => $request->markdown,
+                    'type' => 'lesson',
+                    'metadata' => [
+                        'updated_at' => now()->toDateTimeString(),
+                        'editor' => auth()->user()->name
+                    ]
+                ]
+            ]);
+
+            // Procesar archivos si existen
+            if ($request->hasFile('files')) {
+                foreach ($request->file('files') as $file) {
+                    $content->addMedia($file)
+                            ->toMediaCollection('content-files');
+                }
+            }
+
+            return redirect()->route('admin.courses.show', $course)
+                           ->with('success', 'Contenido actualizado exitosamente');
+        } catch (\Exception $e) {
+            Log::error('Error updating content: ' . $e->getMessage(), [
+                'exception' => $e,
+                'trace' => $e->getTraceAsString()
+            ]);
+            return back()->with('error', 'Error al actualizar el contenido: ' . $e->getMessage())
+                        ->withInput();
+        }
     }
 
     private function getFileIcon($mimeType)

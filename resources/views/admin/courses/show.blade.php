@@ -118,21 +118,14 @@
                                 </div>
 
                                 <!-- Formulario para añadir contenido -->
-                                <form action="{{ route('admin.courses.content.add', $course) }}" method="POST" class="mb-6">
-                                    @csrf
-                                    <input type="hidden" name="course_id" value="{{ $course->id }}">
+                                <div class="mb-6">
                                     <div class="flex gap-4">
-                                        <div class="flex-1">
-                                            <input type="text" name="title" required 
-                                                   class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-                                                   placeholder="{{ __('Título del contenido') }}">
-                                        </div>
-                                        <button type="submit" 
-                                                class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
-                                            {{ __('Añadir') }}
-                                        </button>
+                                        <a href="{{ route('admin.courses.content.create', $course) }}" 
+                                           class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+                                            {{ __('Añadir Contenido') }}
+                                        </a>
                                     </div>
-                                </form>
+                                </div>
 
                                 <!-- Lista de contenidos -->
                                 <div class="overflow-x-auto">
