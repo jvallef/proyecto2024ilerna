@@ -23,9 +23,11 @@ class Content extends Model implements HasMedia
     protected $fillable = [
         'type',
         'title',
+        'slug',
         'content',
         'author_id',
-        'parent_id'
+        'parent_id',
+        'status'
     ];
 
     protected $casts = [

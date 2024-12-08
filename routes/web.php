@@ -19,6 +19,7 @@ use App\Http\Controllers\Api\PathSearchController;
 use App\Http\Controllers\Api\PathTrashedSearchController;
 use App\Http\Controllers\Api\CourseSearchController;
 use App\Http\Controllers\Api\CourseTrashedSearchController;
+use App\Http\Controllers\ContentController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -110,6 +111,13 @@ Route::middleware(['auth'])->group(function () {
         Route::match(['put', 'patch'], 'courses/{course}', [CourseController::class, 'privateUpdate'])->name('courses.update');
         Route::delete('courses/{course}', [CourseController::class, 'privateDestroy'])->name('courses.destroy');
         Route::get('courses/{course}', [CourseController::class, 'privateShow'])->name('courses.show');
+        
+        // Rutas de contenido
+        Route::get('/contents', [ContentController::class, 'index'])->name('contents.index');
+        Route::get('/contents/create', [ContentController::class, 'create'])->name('contents.create');
+        Route::get('/contents/{content}', [ContentController::class, 'show'])->name('contents.show');
+        Route::post('/contents/preview', [ContentController::class, 'preview'])->name('contents.preview');
+        Route::post('/contents', [ContentController::class, 'store'])->name('contents.store');
         
         // API de búsqueda
         Route::get('/api/search/users', [UserSearchController::class, 'suggestions'])
