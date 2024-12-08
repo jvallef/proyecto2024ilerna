@@ -127,6 +127,7 @@ Route::middleware(['auth'])->group(function () {
             Route::delete('/{content}', [ContentController::class, 'destroy'])->name('destroy');
             Route::get('/{content}/edit', [ContentController::class, 'edit'])->name('edit');
             Route::put('/{content}', [ContentController::class, 'update'])->name('update');
+            Route::get('/{content}/show', [ContentController::class, 'show'])->name('show');
         });
         
         // API de búsqueda

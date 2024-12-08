@@ -245,10 +245,12 @@ MARKDOWN;
         }
     }
 
-    public function show(Content $content)
+    public function show(Course $course, Content $content)
     {
         $parsedown = new Parsedown();
-        $markdown = $content->content['markdown'];
+        
+        // Obtener el markdown del contenido
+        $markdown = $content->content['markdown'] ?? '';
         
         // Obtener todos los archivos adjuntos
         $mediaItems = $content->getMedia('content-files');
@@ -258,11 +260,28 @@ MARKDOWN;
         foreach ($mediaItems as $media) {
             $mediaByName->put($media->file_name, $media);
             $mediaByName->put($media->name, $media);
-            // También añadir sin la extensión por si acaso
             $nameWithoutExt = pathinfo($media->file_name, PATHINFO_FILENAME);
             $mediaByName->put($nameWithoutExt, $media);
         }
         
+        // Procesar imágenes y enlaces en el markdown
+        $processedMarkdown = $this->processMarkdownWithMedia($markdown, $mediaByName);
+        
+        // Convertir a HTML
+        $html = $parsedown->text($processedMarkdown);
+        
+        return view('admin.contents.show', [
+            'content' => $content,
+            'html' => $html,
+            'course' => $course
+        ]);
+    }
+
+    /**
+     * Procesa el markdown reemplazando las referencias a archivos con sus URLs
+     */
+    private function processMarkdownWithMedia($markdown, $mediaByName)
+    {
         // Procesar imágenes: ![alt](filename)
         $markdown = preg_replace_callback(
             '/!\[(.*?)\]\((.+?)\)/',
@@ -273,9 +292,9 @@ MARKDOWN;
                 if ($mediaByName->has($filename)) {
                     $media = $mediaByName->get($filename);
                     return sprintf(
-                        '<img src="%s" alt="%s" class="max-w-full h-auto rounded-lg shadow-md">',
-                        $media->getUrl(),
-                        $alt
+                        '![%s](%s)',
+                        $alt,
+                        $media->getUrl()
                     );
                 }
                 
@@ -293,12 +312,10 @@ MARKDOWN;
                 
                 if ($mediaByName->has($filename)) {
                     $media = $mediaByName->get($filename);
-                    $icon = $this->getFileIcon($media->mime_type);
                     return sprintf(
-                        '<a href="%s" class="inline-flex items-center px-4 py-2 bg-white border border-gray-300 rounded-md font-semibold text-xs text-gray-700 uppercase tracking-widest shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:opacity-25 transition ease-in-out duration-150" target="_blank">%s%s</a>',
-                        $media->getUrl(),
-                        $icon,
-                        $text
+                        '[%s](%s)',
+                        $text,
+                        $media->getUrl()
                     );
                 }
                 
@@ -306,7 +323,7 @@ MARKDOWN;
             },
             $markdown
         );
-        
+
         // Procesar !file[filename]: formato especial para archivos
         $markdown = preg_replace_callback(
             '/!file\[(.*?)\]/',
@@ -316,12 +333,11 @@ MARKDOWN;
                 if ($mediaByName->has($filename)) {
                     $media = $mediaByName->get($filename);
                     $icon = $this->getFileIcon($media->mime_type);
-                    $displayName = $media->file_name;
                     return sprintf(
-                        '<a href="%s" class="inline-flex items-center px-4 py-2 bg-white border border-gray-300 rounded-md font-semibold text-xs text-gray-700 uppercase tracking-widest shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:opacity-25 transition ease-in-out duration-150" target="_blank">%s%s</a>',
-                        $media->getUrl(),
+                        '[%s %s](%s)',
                         $icon,
-                        $displayName
+                        $filename,
+                        $media->getUrl()
                     );
                 }
                 
@@ -330,12 +346,28 @@ MARKDOWN;
             $markdown
         );
         
-        $html = $parsedown->text($markdown);
-        
-        return view('admin.contents.show', [
-            'content' => $content,
-            'html' => $html
-        ]);
+        return $markdown;
+    }
+
+    private function getFileIcon($mimeType)
+    {
+        if (str_contains($mimeType, 'pdf')) {
+            return '📄';
+        } elseif (str_contains($mimeType, 'word')) {
+            return '📝';
+        } elseif (str_contains($mimeType, 'excel') || str_contains($mimeType, 'spreadsheet')) {
+            return '📊';
+        } elseif (str_contains($mimeType, 'powerpoint') || str_contains($mimeType, 'presentation')) {
+            return '📊';
+        } elseif (str_contains($mimeType, 'zip') || str_contains($mimeType, 'rar') || str_contains($mimeType, 'tar')) {
+            return '📦';
+        } elseif (str_contains($mimeType, 'video')) {
+            return '🎥';
+        } elseif (str_contains($mimeType, 'audio')) {
+            return '🎵';
+        } else {
+            return '📄';
+        }
     }
     
     /**
@@ -392,22 +424,38 @@ MARKDOWN;
         }
     }
 
-    private function getFileIcon($mimeType)
+    /**
+     * Elimina un contenido del curso
+     */
+    public function destroy(Course $course, Content $content)
     {
-        $icon = '<svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">';
-        
-        if (str_starts_with($mimeType, 'image/')) {
-            $icon .= '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />';
-        } elseif (str_starts_with($mimeType, 'video/')) {
-            $icon .= '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />';
-        } elseif ($mimeType === 'application/pdf') {
-            $icon .= '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />';
-        } else {
-            $icon .= '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3M3 17V7a2 2 0 012-2h6l2 2h6a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2z" />';
+        try {
+            // Primero desvinculamos el contenido del curso
+            $content->courses()->detach($course->id);
+            
+            // Si el contenido no está vinculado a ningún otro curso, lo eliminamos completamente
+            if ($content->courses()->count() === 0) {
+                // Eliminar todos los archivos multimedia asociados
+                $content->clearMediaCollection('content-files');
+                
+                // Eliminar el contenido
+                $content->delete();
+                
+                return redirect()->route('admin.courses.show', $course)
+                               ->with('success', 'Contenido eliminado completamente');
+            }
+            
+            return redirect()->route('admin.courses.show', $course)
+                           ->with('success', 'Contenido desvinculado del curso');
+                           
+        } catch (\Exception $e) {
+            Log::error('Error eliminando contenido: ' . $e->getMessage(), [
+                'exception' => $e,
+                'trace' => $e->getTraceAsString()
+            ]);
+            
+            return back()->with('error', 'Error al eliminar el contenido: ' . $e->getMessage());
         }
-        
-        $icon .= '</svg>';
-        return $icon;
     }
 
     private function parseMarkdownToJson($markdown)

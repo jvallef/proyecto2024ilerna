@@ -35,15 +35,25 @@
                                 <h3 class="text-lg font-medium text-gray-700 mb-2">Archivos Actuales</h3>
                                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                                     @foreach($content->getMedia('content-files') as $media)
-                                    <div class="flex items-center p-4 bg-gray-50 rounded-lg">
+                                    <div class="flex items-start p-4 bg-gray-50 rounded-lg">
+                                        @if(str_starts_with($media->mime_type, 'image/'))
+                                            <div class="w-20 h-20 flex-shrink-0 mr-4 overflow-hidden bg-gray-100 rounded-lg">
+                                                <img src="{{ $media->getUrl() }}" 
+                                                     alt="{{ $media->name }}"
+                                                     class="w-full h-full object-cover hover:opacity-75 transition-opacity duration-150"
+                                                     onclick="window.open('{{ $media->getUrl() }}', '_blank')"
+                                                     title="Click para ver en tamaño completo">
+                                            </div>
+                                        @endif
                                         <div class="flex-1">
                                             <p class="text-sm font-medium text-gray-900">{{ $media->file_name }}</p>
                                             <p class="text-xs text-gray-500">{{ $media->human_readable_size }}</p>
+                                            <p class="text-xs text-gray-500">{{ $media->mime_type }}</p>
+                                            <a href="{{ $media->getUrl() }}" target="_blank" 
+                                               class="mt-2 inline-flex text-sm text-indigo-600 hover:text-indigo-900">
+                                                {{ str_starts_with($media->mime_type, 'image/') ? 'Ver imagen completa' : 'Descargar archivo' }}
+                                            </a>
                                         </div>
-                                        <a href="{{ $media->getUrl() }}" target="_blank" 
-                                           class="ml-4 text-indigo-600 hover:text-indigo-900">
-                                            Ver
-                                        </a>
                                     </div>
                                     @endforeach
                                 </div>

@@ -15,6 +15,7 @@ class DatabaseSeeder extends Seeder
             PathSeeder::class,
             CourseSeeder::class,
             ContentSeeder::class,
+            PythonContentSeeder::class,
             MediaSeeder::class,
             MessageSeeder::class,
             EnrollmentSeeder::class,
