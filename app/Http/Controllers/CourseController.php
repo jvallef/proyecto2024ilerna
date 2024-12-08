@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Course;
 use App\Models\Path;
+use App\Models\Area;
 use App\Services\CourseService;
 use App\Http\Requests\CourseRequest;
 use Illuminate\Http\Request;
@@ -26,7 +27,8 @@ class CourseController extends BaseController
         $this->middleware(['auth', 'role:admin'])->only([
             'privateIndex', 'privateShow', 'privateCreate', 'privateStore', 
             'privateEdit', 'privateUpdate', 'privateDestroy',
-            'privateTrashed', 'privateRestore', 'privateForceDelete'
+            'privateTrashed', 'privateRestore', 'privateForceDelete',
+            'addContent', 'removeContent'
         ]);
         
         // Acceso a sección educativa requiere autenticación
@@ -190,7 +192,10 @@ class CourseController extends BaseController
      */
     public function privateShow(Course $course)
     {
-        return view('admin.courses.show', compact('course'));
+        $paths = Path::all();
+        $areas = Area::all();
+        
+        return view('admin.courses.show', compact('course', 'paths', 'areas'));
     }
 
     /**
@@ -418,6 +423,57 @@ class CourseController extends BaseController
         } catch (\Exception $e) {
             Log::error('Error unenrolling student: ' . $e->getMessage());
             return back()->with('error', 'Error al desmatricular al estudiante.');
+        }
+    }
+
+    /**
+     * Añade contenido a un curso
+     */
+    public function addContent(Request $request, Course $course)
+    {
+        try {
+            DB::beginTransaction();
+            
+            $validated = $request->validate([
+                'path_id' => 'required|exists:paths,id',
+                'area_id' => 'required|exists:areas,id',
+            ]);
+            
+            $course->paths()->attach($validated['path_id']);
+            
+            DB::commit();
+            return redirect()->route('admin.courses.show', $course)
+                           ->with('success', 'Contenido añadido correctamente');
+                           
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Error añadiendo contenido al curso: ' . $e->getMessage());
+            return back()->with('error', 'Error al añadir el contenido');
+        }
+    }
+
+    /**
+     * Elimina contenido de un curso
+     */
+    public function removeContent(Request $request, Course $course)
+    {
+        try {
+            DB::beginTransaction();
+            
+            $validated = $request->validate([
+                'path_id' => 'required|exists:paths,id'
+            ]);
+            
+            $course->paths()->detach($validated['path_id']);
+            
+            DB::commit();
+            return redirect()->route('admin.courses.show', $course)
+                           ->with('success', 'Contenido eliminado correctamente');
+                           
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Error eliminando contenido del curso: ' . $e->getMessage());
+            return back()->with('error', 'Error al eliminar el contenido');
         }
     }
 

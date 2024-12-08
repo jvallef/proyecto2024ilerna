@@ -119,6 +119,12 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/contents/preview', [ContentController::class, 'preview'])->name('contents.preview');
         Route::post('/contents', [ContentController::class, 'store'])->name('contents.store');
         
+        // Rutas de gestión de contenido del curso
+        Route::post('/courses/{course}/content/add', [CourseController::class, 'addContent'])
+             ->name('courses.content.add');
+        Route::post('/courses/{course}/content/remove', [CourseController::class, 'removeContent'])
+             ->name('courses.content.remove');
+        
         // API de búsqueda
         Route::get('/api/search/users', [UserSearchController::class, 'suggestions'])
             ->name('api.users.search');
